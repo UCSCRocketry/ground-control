@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 # --- SETTINGS ---
 
 list_intervals = [10, 20, 30, 50, 75, 100]          # a list of animate intervals to test, in milliseconds (ms)
-max_iterations = 100                                    # num of times animate is called per trial
+max_iterations = 100                                # num of times animate is called per trial
 trials = 1                                          # num of trials per interval
 
 # --- END OF SETTINGS ---
@@ -32,7 +32,7 @@ for interval in list_intervals:
     trial_avg = 0
     for i in range(trials):
         rt = rt_plt.rt_plotter(interval, max_iterations)
-        #rt = rt_plt.multi_rt_plotter(4, 2, 2, interval, iterations)        # multi plotter option, generates 4 plots in a 2x2 grid
+        #rt = rt_plt.multi_rt_plotter(4, 2, 2, interval, max_iterations)        # multi plotter option, generates 4 plots in a 2x2 grid
 
         trial_start = dt.datetime.now()
         rt.start()
