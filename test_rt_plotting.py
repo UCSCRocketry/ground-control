@@ -46,4 +46,8 @@ print(f'Test complete. Time taken: {(test_end - test_start).total_seconds() / 60
 fig = plt.figure()
 ax = fig.add_subplot(1, 1, 1)
 ax.plot(list_intervals, graph_data)
+
+plt.title('Theoretical Interval vs Real Interval')
+plt.ylabel('Real Interval (ms)')
+plt.xlabel('Theoretical Interval (ms)')
 plt.show()
