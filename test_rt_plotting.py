@@ -15,8 +15,8 @@ import matplotlib.pyplot as plt
 # --- SETTINGS ---
 
 list_intervals = [10, 20, 30, 50, 75, 100]          # a list of animate intervals to test, in milliseconds (ms)
-iterations = 200                                    # num of times animate is called per trial
-trials = 5                                          # num of trials per interval
+iterations = 100                                    # num of times animate is called per trial
+trials = 1                                          # num of trials per interval
 
 # --- END OF SETTINGS ---
 
@@ -28,7 +28,11 @@ test_start = dt.datetime.now()
 for interval in list_intervals:
     trial_avg = 0
     for i in range(trials):
-        trial_avg += (rt_plt.init_visualizer(interval, iterations)[1].total_seconds() * 1000)
+        rt = rt_plt.rt_plotter(interval, iterations)
+        trial_start = dt.datetime.now()
+        rt.start()
+        trial_end = dt.datetime.now()
+        trial_avg += ((trial_end - trial_start).total_seconds() * 1000) / iterations
     trial_avg = round(trial_avg / trials, 5)
 
     print('INTERVAL: {0:<4} ms      AVERAGE: {1:<7} ms'.format(interval, trial_avg))
