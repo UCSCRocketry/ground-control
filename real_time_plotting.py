@@ -8,62 +8,53 @@ from random import randint
 #       - needs comments
 #       - feel free to make improvements to code
 
-def read_sensor():
-    global sensor
-    sensor += randint(-3, 6)
-    return sensor
 
-# This function is called periodically from FuncAnimation
-def animate(i, xs, ys, plot_interval, max_iterations):
-    global ani, ax, iteration, sensor, time_end
+class rt_plotter():
 
-    # Read sensor data
-    sensor_data = read_sensor()
+    def __init__(self, interval=50, max_iterations=200):
+        self.interval = interval
+        self.max_iterations = max_iterations
 
-    # Add x and y to lists
-    xs.append(dt.datetime.now().strftime('%H:%M:%S.%f'))
-    ys.append(sensor_data)
+        self.iteration = 0
+        self.sensor = 0
 
-    # Limit x and y lists to 20 items
-    xs = xs[-20:]
-    ys = ys[-20:]
+        self.xs = []
+        self.ys = []
 
-    # Draw x and y lists
-    ax.clear()
-    ax.plot(xs, ys)
+        self.fig = plt.figure()
+        self.ax = self.fig.add_subplot(1, 1, 1)
 
-    # Format plot
-    plt.xticks(rotation=45, ha='right')
-    plt.subplots_adjust(bottom=0.30)
-    plt.title(f'Current Interval: {plot_interval} ms')
-    plt.ylabel('Sensor Data (random)')
+        self.ani = animation.FuncAnimation(self.fig, self.animate, interval=self.interval, cache_frame_data=False)
 
-    if iteration > max_iterations:
-        time_end = dt.datetime.now()
-        ani.event_source.stop()
-        plt.close()
-    else:
-        iteration += 1
+    def animate(self, i):
+        self.update_sensor()
 
-def init_visualizer(plot_interval, max_iterations=500):
-    global ani, ax, sensor, iteration, time_start, time_end
+        self.xs.append(dt.datetime.now().strftime('%H:%M:%S.%f'))
+        self.ys.append(self.sensor)
 
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
-    xs = []
-    ys = []
-    sensor = 0
-    iteration = 0
+        self.xs = self.xs[-20:]
+        self.ys = self.ys[-20:]
 
-    time_start = dt.datetime.now()
+        self.ax.clear()
+        self.ax.plot(self.xs, self.ys)
 
-    # Set up plot to call animate() function periodically
-    ani = animation.FuncAnimation(fig, animate, fargs=(xs, ys, plot_interval, max_iterations), interval=plot_interval, cache_frame_data=False)
-    plt.show()
+        plt.xticks(rotation=45, ha='right')
+        plt.subplots_adjust(bottom=0.30)
+        plt.title(f'Current Interval: {self.interval} ms')
+        plt.ylabel('Sensor Data (random)')
 
-    avg_time = (time_end - time_start ) / iteration
-    #print(f'INTERVAL: {plot_interval}   AVERAGE: {avg_time}')
-    return (plot_interval, avg_time)
+        if self.iteration > self.max_iterations:
+            self.ani.event_source.stop()
+            plt.close()
+        else:
+            self.iteration += 1
+
+    def update_sensor(self):
+        self.sensor += randint(-3, 6)
+
+    def start(self):
+        plt.show()
 
 if __name__ == '__main__':
-    init_visualizer(100)
+    rt1 = rt_plotter(10, 100)
+    rt1.start()
