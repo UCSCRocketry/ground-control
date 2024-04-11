@@ -9,9 +9,9 @@ from random import randint
 #       - feel free to make improvements to code
 
 def read_sensor():
-    global sensor, iteration
+    global sensor
     sensor += randint(-3, 6)
-    return sensor + randint(0, 10)
+    return sensor
 
 # This function is called periodically from FuncAnimation
 def animate(i, xs, ys, plot_interval, max_iterations):
@@ -25,8 +25,8 @@ def animate(i, xs, ys, plot_interval, max_iterations):
     ys.append(sensor_data)
 
     # Limit x and y lists to 20 items
-    xs = xs[-100:]
-    ys = ys[-100:]
+    xs = xs[-20:]
+    ys = ys[-20:]
 
     # Draw x and y lists
     ax.clear()
