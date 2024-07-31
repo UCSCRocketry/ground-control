@@ -31,11 +31,18 @@ test_start = dt.datetime.now()
 for interval in list_intervals:
     trial_avg = 0
     for i in range(trials):
-        rt = rt_plt.rt_plotter(interval, max_iterations)
-        #rt = rt_plt.multi_rt_plotter(4, 2, 2, interval, max_iterations)        # multi plotter option, generates 4 plots in a 2x2 grid
-
+        #rt = rt_plt.rt_plotter(interval, max_iterations)
+        rt = rt_plt.multi_rt_plotter_deprecated(2, 2, interval, max_iterations)        # multi plotter option, generates 4 plots in a 2x2 grid
+        '''
+        fig, axs = plt.subplots(2, 2)
+        plot1 = rt_plt.multi_rt_plotter(fig, axs[0][0])
+        plot2 = rt_plt.multi_rt_plotter(fig, axs[0][1])
+        plot3 = rt_plt.multi_rt_plotter(fig, axs[1][0])
+        plot4 = rt_plt.multi_rt_plotter(fig, axs[1][1])
+        '''
         trial_start = dt.datetime.now()
-        rt.start()
+        #rt.start()
+        plt.show()
         trial_end = dt.datetime.now()
         trial_avg += ((trial_end - trial_start).total_seconds() * 1000) / max_iterations
     trial_avg = round(trial_avg / trials, 5)
