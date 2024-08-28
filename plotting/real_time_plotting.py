@@ -1,27 +1,36 @@
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import serial
 from random import randint
 
 # https://learn.sparkfun.com/tutorials/graph-sensor-data-with-python-and-matplotlib/plot-sensor-data
 
-# SEE MAIN FILE: test_rt_plotting.py
+# TESTER FILE: test_rt_plotting.py (tests actual vs. theoretical intervals)
 # Contents:
 #   - class rt_plotter (plots a single real time graph)
 #   - class multi_rt_plotter (plots multiple real time graphs in one window)
+#   - class serial_port (mock serial port)
+#   - class multi_rt_plotter_deprectated (old code)
 # Feel free to make improvements to code
 
 # TODO:
-#   - Update multi_rt_plotter to use same animation code as rt_plotter
-#   - Clean up & improve rt_plotter code
+#   - implement asyncio in serial port code?
+#       - asyncio docs: https://docs.python.org/3/library/asyncio.html
+#       - pySerial asyncio: https://pythonhosted.org/pyserial/pyserial_api.html#module-serial.aio
+#   - write real serial port code (two systems connected via one port, send/receive data over port)
+#   - make graphs prettier!
 
 # inputs:
+#   - mock serial port of class serial_port
 #   - interval (default 50)
 #   - max iterations (default 200)
 # output:
-#   - a real time graph with randomized data (see update_sensor() method)
+#   - a real time graph with randomized data from a mock serial port (see update_sensor() method)
 class rt_plotter:
 
-    def __init__(self, interval=50, max_iterations=200):
+    def __init__(self, serialport, interval=50, max_iterations=200):
+        self.serialport = serialport
+
         self.interval = interval
         self.max_iterations = max_iterations
 
@@ -45,6 +54,11 @@ class rt_plotter:
     def animate(self, i):
         self.update_sensor()                                            # update sensor data
 
+        if (self.iteration > self.max_iterations):
+            self.stop()
+        else:
+            self.iteration += 1
+
         #self.xs.append(dt.datetime.now().strftime('%H:%M:%S.%f'))      # update x data
         self.xs.append(self.iteration)
         self.ys.append(self.sensor)                                     # update y data
@@ -57,26 +71,38 @@ class rt_plotter:
 
         self.ln.set_data(self.xs, self.ys)                              # update plot
 
-        if self.iteration > self.max_iterations:
-            self.ani.event_source.stop()
-            plt.close()
-        else:
-            self.iteration += 1
         #print(self.ln,)
         #return self.ln,                                                # required for blit = True
 
     def update_sensor(self):
-        self.sensor += randint(-3, 6)
+        try:
+            self.sensor = self.serialport.read()
+        except:
+            self.stop()
 
     def start(self):
         plt.subplots_adjust(bottom=0.30)
         plt.show()
 
-class multi_rt_plotter():
+    def stop(self):
+        self.ani.event_source.stop()
+        plt.close()
 
-    def __init__(self, fig, ax, interval=50, max_iterations=100):
+# inputs:
+#   - matplotlib figure
+#   - matplotlib axs by row and col
+#   - mock serial port of class serial_port
+#   - interval (default 50)
+#   - max iterations (default 100)
+# output:
+#   - a real time graph with randomized data from a mock serial port (see update_sensor() method)
+#   - graph will be displayed along other multi_rt_plotter that have been initialized
+class multi_rt_plotter:
+
+    def __init__(self, fig, ax, serialport, interval=50, max_iterations=100):
         self.fig = fig
         self.ax = ax
+        self.serialport = serialport
         self.interval = interval
         self.max_iterations = max_iterations
 
@@ -96,6 +122,11 @@ class multi_rt_plotter():
     def animate(self, i):
         self.update_sensor()                                            # update sensor data
 
+        if self.iteration > self.max_iterations:
+            self.stop()
+        else:
+            self.iteration += 1
+
         #self.xs.append(dt.datetime.now().strftime('%H:%M:%S.%f'))      # update x data
         self.xs.append(self.iteration)
         self.ys.append(self.sensor)                                     # update y data
@@ -108,31 +139,63 @@ class multi_rt_plotter():
 
         self.ln.set_data(self.xs, self.ys)                              # update plot
 
-        if self.iteration > self.max_iterations:
-            self.ani.event_source.stop()
-            plt.close()
-        else:
-            self.iteration += 1
         #print(self.ln,)
         #return self.ln,                                                # required for blit = True
 
     def update_sensor(self):
-        self.sensor += randint(-3, 6)
+        try:
+            self.sensor = self.serialport.read()
+        except:
+            self.stop()
+
+    def stop(self):
+        self.ani.event_source.stop()
+        plt.close()
+
+# mock serial port
+# generates random bytes and writes them to the port on initialization
+# ideally it would write bytes asynchronously while plotter code is running, but this hasn't been implemented yet
+# ^ (see https://pythonhosted.org/pyserial/pyserial_api.html#module-serial.aio and https://docs.python.org/3/library/asyncio.html)
+class serial_port:
+
+    def __init__(self, min= -6, max= 10, num= 1000):
+        self.ser = serial.serial_for_url('loop://')
+        random_num = int
+        print(f'Writing {num} bytes to port...')
+        for i in range(num):
+            random_num = randint(min, max)
+            self.ser.write(int.to_bytes(random_num, signed=True))
+
+    def read(self, num_bytes=1):
+        if not self.ser.in_waiting:
+            raise Exception
+        received = int.from_bytes(self.ser.read(num_bytes), signed=True)
+        print(f'Received: {received}')
+        return received
+
+    def close(self):
+        print(f'Remaining bytes in port: {self.ser.in_waiting}\nClosing port...')
+        self.ser.close()
 
 
 if __name__ == '__main__':
 
+    # init mock serial port
+    ser = serial_port()
+
+    # one real time plot using one mock serial port
+    #rt = rt_plotter(ser)
+    #rt.start()
+
+    # four real time plots using one mock serial port
     fig, axs = plt.subplots(2, 2)
-    plot1 = multi_rt_plotter(fig, axs[0][0])
-    plot2 = multi_rt_plotter(fig, axs[0][1])
-    plot3 = multi_rt_plotter(fig, axs[1][0])
-    plot4 = multi_rt_plotter(fig, axs[1][1])
+    plot1 = multi_rt_plotter(fig, axs[0][0], ser)
+    plot2 = multi_rt_plotter(fig, axs[0][1], ser)
+    plot3 = multi_rt_plotter(fig, axs[1][0], ser)
+    plot4 = multi_rt_plotter(fig, axs[1][1], ser)
     plt.show()
 
-
-    #rt1 = multi_rt_plotter(4, 2, 2, 40, 100)
-    #rt1 = rt_plotter(40, 100)
-    #rt1.start()
+    ser.close()
 
 class multi_rt_plotter_deprecated(rt_plotter):
     # use plt.subplot_mosaic() method instead?
