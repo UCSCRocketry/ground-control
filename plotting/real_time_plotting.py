@@ -14,9 +14,11 @@ from random import randint
 # Feel free to make improvements to code
 
 # TODO:
-#   - implement asyncio in serial port code?
+#   - implement async in serial port code?
 #       - asyncio docs: https://docs.python.org/3/library/asyncio.html
 #       - pySerial asyncio: https://pythonhosted.org/pyserial/pyserial_api.html#module-serial.aio
+#       - matplotlib event loops: https://matplotlib.org/stable/users/explain/figure/interactive_guide.html
+#       - state machine?
 #   - write real serial port code (two systems connected via one port, send/receive data over port)
 #   - make graphs prettier!
 
