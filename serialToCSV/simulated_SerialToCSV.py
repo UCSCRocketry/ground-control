@@ -21,7 +21,7 @@ def produce_serial_line():
         
 
 def serialToCSV(csv_filename, date, current_time, random_temperature, random_speed):
-    with open(csv_filename, mode='w', newline='') as csv_file:  # opens CSV file in write mode
+    with open(csv_filename, mode='w', newline='') as csv_file:
         writer = csv.writer(csv_file)  # creates a CSV writer object
         writer.writerow(["Date", "Time", "Temperature", "Speed"])   # writes the column names of the CSV file
     
