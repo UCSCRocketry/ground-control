@@ -1,16 +1,16 @@
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-import serial
+from serialport import Serialport
 from random import randint
 
 # https://learn.sparkfun.com/tutorials/graph-sensor-data-with-python-and-matplotlib/plot-sensor-data
 
 # TESTER FILE: test_rt_plotting.py (tests actual vs. theoretical intervals)
+# SERIAL PORT CODE: serialport.py (Serialport & MockSerialport classes)
 # Contents:
 #   - class rt_plotter (plots a single real time graph)
 #   - class multi_rt_plotter (plots multiple real time graphs in one window)
-#   - class serial_port (mock serial port)
-#   - class multi_rt_plotter_deprectated (old code)
+#   - class multi_rt_plotter_deprectated (old code for reference)
 # Feel free to make improvements to code
 
 # TODO:
@@ -19,23 +19,24 @@ from random import randint
 #       - pySerial asyncio: https://pythonhosted.org/pyserial/pyserial_api.html#module-serial.aio
 #       - matplotlib event loops: https://matplotlib.org/stable/users/explain/figure/interactive_guide.html
 #       - state machine?
-#   - write real serial port code (two systems connected via one port, send/receive data over port)
 #   - make graphs prettier!
+#   - Research using Docker to display our graphs on the GCS website
 
 # inputs:
-#   - mock serial port of class serial_port
+#   - a MockSerialport class or Serialport class (see serialport.py)
 #   - interval (default 50)
-#   - max iterations (default 200)
+#   - timeout (default 20, number of iterations without input from port before stopping)
 # output:
-#   - a real time graph with randomized data from a mock serial port (see update_sensor() method)
+#   - a real time graph with data from a mock or real serial port
 class rt_plotter:
 
-    def __init__(self, serialport, interval=50, max_iterations=200):
+    def __init__(self, serialport, interval=50, timeout=20):
         self.serialport = serialport
 
         self.interval = interval
-        self.max_iterations = max_iterations
+        self.timeout = timeout
 
+        self.timeout_counter = 0
         self.iteration = 0
         self.sensor = 0
 
@@ -56,31 +57,32 @@ class rt_plotter:
     def animate(self, i):
         self.update_sensor()                                            # update sensor data
 
-        if (self.iteration > self.max_iterations):
+        if self.timeout_counter >= self.timeout:
             self.stop()
+
+        if self.sensor == None:
+            self.timeout_counter += 1
         else:
+            self.timeout_counter = 0
             self.iteration += 1
 
-        #self.xs.append(dt.datetime.now().strftime('%H:%M:%S.%f'))      # update x data
-        self.xs.append(self.iteration)
-        self.ys.append(self.sensor)                                     # update y data
+            #self.xs.append(dt.datetime.now().strftime('%H:%M:%S.%f'))      # update x data
+            self.xs.append(self.iteration)
+            self.ys.append(self.sensor)                                     # update y data
 
-        self.xs = self.xs[-20:]                                         # limit x data to last 20 entries
-        self.ys = self.ys[-20:]                                         # limit y data
+            self.xs = self.xs[-20:]                                         # limit x data to last 20 entries
+            self.ys = self.ys[-20:]                                         # limit y data
 
-        self.ax.set_xlim(min(self.xs), max(self.xs))                    
-        self.ax.set_ylim(min(self.ys), max(self.ys))
+            self.ax.set_xlim(min(self.xs), max(self.xs))                    
+            self.ax.set_ylim(min(self.ys), max(self.ys))
 
-        self.ln.set_data(self.xs, self.ys)                              # update plot
+            self.ln.set_data(self.xs, self.ys)                              # update plot
 
-        #print(self.ln,)
-        #return self.ln,                                                # required for blit = True
+            #print(self.ln,)
+            #return self.ln,                                                # required for blit = True
 
     def update_sensor(self):
-        try:
-            self.sensor = self.serialport.read()
-        except:
-            self.stop()
+        self.sensor = self.serialport.read()
 
     def start(self):
         plt.subplots_adjust(bottom=0.30)
@@ -93,21 +95,22 @@ class rt_plotter:
 # inputs:
 #   - matplotlib figure
 #   - matplotlib axs by row and col
-#   - mock serial port of class serial_port
+#   - a MockSerialport class or Serialport class (see serialport.py)
 #   - interval (default 50)
-#   - max iterations (default 100)
+#   - timeout (default 20, number of iterations without input from port before stopping)
 # output:
-#   - a real time graph with randomized data from a mock serial port (see update_sensor() method)
+#   - a real time graph with data from a mock or real serial port
 #   - graph will be displayed along other multi_rt_plotter that have been initialized
 class multi_rt_plotter:
 
-    def __init__(self, fig, ax, serialport, interval=50, max_iterations=100):
+    def __init__(self, fig, ax, serialport, interval=50, timeout=20):
         self.fig = fig
         self.ax = ax
         self.serialport = serialport
         self.interval = interval
-        self.max_iterations = max_iterations
+        self.timeout = timeout
 
+        self.timeout_counter = 0
         self.iteration = 0
         self.sensor = 0
 
@@ -124,72 +127,48 @@ class multi_rt_plotter:
     def animate(self, i):
         self.update_sensor()                                            # update sensor data
 
-        if self.iteration > self.max_iterations:
+        if self.timeout_counter >= self.timeout:
             self.stop()
+
+        if self.sensor == None:
+            self.timeout_counter += 1
         else:
+            self.timeout_counter = 0
             self.iteration += 1
 
-        #self.xs.append(dt.datetime.now().strftime('%H:%M:%S.%f'))      # update x data
-        self.xs.append(self.iteration)
-        self.ys.append(self.sensor)                                     # update y data
+            #self.xs.append(dt.datetime.now().strftime('%H:%M:%S.%f'))      # update x data
+            self.xs.append(self.iteration)
+            self.ys.append(self.sensor)                                     # update y data
 
-        self.xs = self.xs[-20:]                                         # limit x data to last 20 entries
-        self.ys = self.ys[-20:]                                         # limit y data
+            self.xs = self.xs[-20:]                                         # limit x data to last 20 entries
+            self.ys = self.ys[-20:]                                         # limit y data
 
-        self.ax.set_xlim(min(self.xs), max(self.xs))                    
-        self.ax.set_ylim(min(self.ys), max(self.ys))
+            self.ax.set_xlim(min(self.xs), max(self.xs))                    
+            self.ax.set_ylim(min(self.ys), max(self.ys))
 
-        self.ln.set_data(self.xs, self.ys)                              # update plot
+            self.ln.set_data(self.xs, self.ys)                              # update plot
 
-        #print(self.ln,)
-        #return self.ln,                                                # required for blit = True
+            #print(self.ln,)
+            #return self.ln,                                                # required for blit = True
 
     def update_sensor(self):
-        try:
-            self.sensor = self.serialport.read()
-        except:
-            self.stop()
+        self.sensor = self.serialport.read()
 
     def stop(self):
         self.ani.event_source.stop()
         plt.close()
 
-# mock serial port
-# generates random bytes and writes them to the port on initialization
-# ideally it would write bytes asynchronously while plotter code is running, but this hasn't been implemented yet
-# ^ (see https://pythonhosted.org/pyserial/pyserial_api.html#module-serial.aio and https://docs.python.org/3/library/asyncio.html)
-class serial_port:
-
-    def __init__(self, min= -6, max= 10, num= 1000):
-        self.ser = serial.serial_for_url('loop://')
-        random_num = int
-        print(f'Writing {num} bytes to port...')
-        for i in range(num):
-            random_num = randint(min, max)
-            self.ser.write(int.to_bytes(random_num, signed=True))
-
-    def read(self, num_bytes=1):
-        if not self.ser.in_waiting:
-            raise Exception
-        received = int.from_bytes(self.ser.read(num_bytes), signed=True)
-        print(f'Received: {received}')
-        return received
-
-    def close(self):
-        print(f'Remaining bytes in port: {self.ser.in_waiting}\nClosing port...')
-        self.ser.close()
-
-
 if __name__ == '__main__':
 
-    # init mock serial port
-    ser = serial_port()
+    # init serial port
+    ser = Serialport('COM2')        # real/virtual serial port (REQUIRES A REAL/VIRTUAL CONNECTION)
+    #ser = MockSerialport()         # mock serial port
 
-    # one real time plot using one mock serial port
-    #rt = rt_plotter(ser)
+    # one real time plot using one serial port
+    #rt = rt_plotter(ser, 150)
     #rt.start()
 
-    # four real time plots using one mock serial port
+    # four real time plots using one serial port
     fig, axs = plt.subplots(2, 2)
     plot1 = multi_rt_plotter(fig, axs[0][0], ser)
     plot2 = multi_rt_plotter(fig, axs[0][1], ser)
