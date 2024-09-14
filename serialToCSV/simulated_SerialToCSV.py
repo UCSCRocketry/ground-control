@@ -25,7 +25,7 @@ def serialToCSV(csv_filename, date, current_time, random_temperature, random_spe
         writer = csv.writer(csv_file)  # creates a CSV writer object
         writer.writerow(["Date", "Time", "Temperature", "Speed"])   # writes the column names of the CSV file
     
-        time_to_end_loop = time.time() + 60 * 5   # sets a time limit of 5 minutes from current time 
+        time_to_end_loop = time.time() + (60 * 5)   # sets a time limit of 5 minutes from current time 
         while time.time() < time_to_end_loop:   # while the current time is less than the time limit
             date, current_time, random_temperature, random_speed = produce_serial_line()   # assign the values of the serial data produced earlier to our variables
             writer.writerow([date, current_time, random_temperature, random_speed])  # writes the serial data to the CSV file
