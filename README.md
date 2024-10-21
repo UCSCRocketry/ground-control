@@ -5,13 +5,15 @@ This project aims to create a ground control system that logs data collected dur
 
 # FLASK INSTALLATION GUIDE
 
-1. Pull/set this branch as your working directory
+### 1. Pull/set this branch as your working directory
 
-2. Navigate to the `backend` folder
+### 2. Navigate to the `backend` folder
 
     cd backend
 
-3. You may want to create a virtual python environment to separate packages and versions. Interpreter names may not match up to the ones listed below (e.g. "python" instead of "py")
+### 3. You may want to create a virtual python environment to separate packages and versions.
+
+Interpreter names may not match up to the ones listed below (e.g. "python" instead of "py")
 
     For mac/unix users: python3 -m venv env
     For windows users: py -m venv env
@@ -25,7 +27,7 @@ If you want to deactivate the environment, simply type into the terminal:
 
     deactivate
 
-4. Install flask and its environment (make sure you are doing this with the virtual python environment active):
+### 4. Install flask and its environment (make sure you are doing this with the virtual python environment active):
 
     pip install flask
     pip install python-dotenv
@@ -36,7 +38,7 @@ If you get an error about permissions when running pip (such as WinError2), try 
 
 Note that the flask environment variables are stored in the `.flaskenv` file. The main flask app is currently set to `base.py`.
 
-5. Try running flask
+### 5. Try running flask
 
     flask run
 
