@@ -62,7 +62,7 @@ Open up a browser and go to http://localhost:5000/api/test . You should see a JS
 
 ### 6. Test backend-frontend connection:
 
-Start up the backend and the frontend using the following commands:
+Start up the backend and the frontend using the following commands (you will need to open two terminals):
 
     npm run start-backend           // no need to run this if your backend is still up!
     npm start                       // starts the frontend
