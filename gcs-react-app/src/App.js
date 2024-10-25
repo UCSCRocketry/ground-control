@@ -5,6 +5,7 @@ import About from "./pages/About";
 import NavBar from "./components/NavBar";
 import "./Global.css";
 
+// comnet
 function App() {
   return (
     <Router>
