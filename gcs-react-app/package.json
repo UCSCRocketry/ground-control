@@ -15,7 +15,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "start-backend": "cd backend && flask run --debug",
+    "start-backend": "cd backend && flask run --debug --port 9999",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
