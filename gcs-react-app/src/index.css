@@ -28,3 +28,23 @@ code {
 #nav img {
   height: 4rem;
 }
+
+main {
+  padding: 3rem 5rem;
+}
+
+#launch {
+  background-color: red;
+  width: 356px;
+  height: 356px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+}
+
+.launches-container {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: space-between;
+}
