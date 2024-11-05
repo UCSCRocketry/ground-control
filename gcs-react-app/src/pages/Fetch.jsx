@@ -5,7 +5,7 @@ function Fetch() {
     const [accel, setAccel] = useState(null);
 
     useEffect(() => {
-        fetch("http://localhost:5000/api/test", {
+        fetch("http://localhost:9999/api/test", {
             method: "GET",
         })
             .then((response) => response.json())
