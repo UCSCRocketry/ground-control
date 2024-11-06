@@ -17,8 +17,8 @@ h1 {
     text-align: left;
 }
   
-div:hover {
-    opacity: 0.8;
+.Button:hover {
+    opacity: 0.5;
 }
   
 svg {

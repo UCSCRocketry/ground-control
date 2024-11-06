@@ -3,7 +3,7 @@ import backArrow from '../assets/back-arrow.svg';
 
 const HomeButton = () => {
   return (
-    <div>
+    <div className="Button">
         <img src={backArrow} alt="Back" />
         <h1>Home</h1>
     </div>
