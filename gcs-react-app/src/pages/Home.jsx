@@ -1,8 +1,13 @@
+import Launch from "../components/Launch"
+
 export default function Home() {
     return (
-        <div>
-            <h1>Home</h1>
-            <p>Welcome to the home page!</p>
-        </div>
+        <main>
+            <h1>Recent Launches</h1>
+            <div class="launches-container">
+                <Launch name="New Launch" />
+                <Launch name="Spaceport Launch (Test)" />
+            </div>
+        </main>
     )
 }
