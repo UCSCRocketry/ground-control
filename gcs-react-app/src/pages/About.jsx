@@ -1,4 +1,5 @@
 import BackButton from "./../components/BackButton";
+import HomeButton from "./../components/HomeButton";
 
 export default function About() {
     return (
