@@ -56,9 +56,9 @@ Note that the flask environment variables are stored in the `.flaskenv` file. Th
 
 ### 5. Try running flask:
 
-    flask run
+    flask run --port 9999
 
-Open up a browser and go to http://localhost:5000/api/test . You should see a JSON string!
+Open up a browser and go to http://localhost:9999/api/test . You should see a JSON string!
 
 ### 6. Test backend-frontend connection:
 
