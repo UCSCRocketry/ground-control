@@ -1,0 +1,37 @@
+#nav {
+    display: none;
+}
+
+div{
+    background-image: linear-gradient(#33196B, #6432D1);
+    height: 97vh;
+}
+
+.center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+
+    margin-left: 30%;
+}
+
+img {
+    width: 40%;
+}
+
+input {
+    border: none;
+    border-radius: 5px;
+}
+
+#username {
+    width: 50%;
+    padding: 15px 20px;
+}
+
+#password {
+    margin-top: 10px;
+    width: 40%;
+    padding: 10px 20px;
+}
