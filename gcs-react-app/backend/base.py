@@ -1,8 +1,50 @@
-from flask import Flask
+from flask import Flask, request
 from flask_cors import CORS
+from flask_socketio import SocketIO, emit
+from threading import Lock
+from random import randint
 
 api = Flask(__name__)
-CORS(api, resources={r"/api/*": {"origins": r"http://localhost:3000"}})     # allows requests to /api/ pages from origin localhost:3000
+api.config['SECRET_KEY'] = 'secret!'
+CORS(api, resources={r"/*": {"origins": "http://localhost:3000"}})     # allows requests to /api/ pages from origin localhost:3000 (frontend)
+socketio = SocketIO(api, cors_allowed_origins="*")
+
+thread = None
+thread_lock = Lock()
+
+velocity = 0
+accel = 0
+
+def background_thread():
+    global velocity, accel
+    count = 0
+    while True:
+        socketio.sleep(10)
+        count += 1
+        velocity += randint(-3, 10)
+        accel += randint(-3, 10)
+        print('Sending data...')
+        socketio.emit('send_data',
+                      {'data': 'Server generated event', 
+                       'velocity': velocity,
+                       'accel': accel,
+                       'count': count})
+
+@socketio.on("connect")
+def connect_msg():
+    print(request.sid)
+    print('Client is connected!')
+
+    global thread
+    with thread_lock:
+        if thread is None:
+            thread = socketio.start_background_task(background_thread())
+    emit('connected', {'data': f"id: {request.sid} is connected."})
+    
+
+@socketio.on("disconnect")
+def disconnect_msg():
+    print('Client disconnected!')
 
 @api.route('/api/test')
 def testroute():
@@ -12,3 +54,6 @@ def testroute():
     }
 
     return data
+
+if __name__ == '__main__':
+    socketio.run(api, debug=True, port=9999)
