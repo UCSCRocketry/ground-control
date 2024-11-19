@@ -56,15 +56,15 @@ Note that the flask environment variables are stored in the `.flaskenv` file. Th
 
 ### 5. Try running flask:
 
-    flask run
+    flask run --port 9999
 
-Open up a browser and go to http://localhost:5000/api/test/. You should see a JSON string!
+Open up a browser and go to http://localhost:9999/api/test . You should see a JSON string!
 
 ### 6. Test backend-frontend connection:
 
-Start up the backend and the frontend using the following commands:
+Start up the backend and the frontend using the following commands (you will need to open two terminals):
 
     npm run start-backend           // no need to run this if your backend is still up!
     npm start                       // starts the frontend
 
-Then navigate to http://localhost:3000/fetch. There should be a simple page displaying the values from the backend!
+Then navigate to http://localhost:3000/fetch . There should be a simple page displaying the values from the backend!
