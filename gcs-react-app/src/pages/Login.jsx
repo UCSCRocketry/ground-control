@@ -8,7 +8,7 @@ export default function Home() {
                 <img src={RocketLogo} width="50%" alt="rocket team logo"/>
                 <input type="text" id="username" name="username" placeholder="GROUND CONTROL SYSTEM MEBER LOGIN USERNAME"/>
                 <input type="password" id="password" name="password" placeholder="Password"/>
-                <h6 className="forgot-password">Forgot Password?</h6>
+                <a href="/"><h6 className="forgot-password">Forgot Password?</h6></a>
             </div>
         </div>
     )

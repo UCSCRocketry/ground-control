@@ -14,7 +14,7 @@ html{
     align-items: center;
     flex-direction: column;
 
-    margin-top: 5%;
+    margin-top: 8%;
     margin-left: 30%;
 }
 
@@ -25,9 +25,11 @@ img {
 input {
     border: none;
     border-radius: 5px;
+    text-align: center;
 }
 
 input::placeholder {
+    text-align: center;
     font-family: var(--sds-typography-body-font-family);
     line-height: 22.4px;
     text-underline-position: from-font;
@@ -36,27 +38,30 @@ input::placeholder {
 
 #username {
     width: 55%;
-    padding: 10px 20px;
+    height: 30%;
+    padding: 10px 30px;
     font-style: italic;
-    text-align: left;
-    font-weight: 150;
+    font-weight: 150; 
     font-size: 12px;
 }
 
 #password {
-    text-align: center;
     margin-top: 20px;
     width: 40%;
+    line-height: 18.4px;
     padding: 10px 20px;
-    font-style: bold;
-    font-weight: 500;
+    font-weight: 600;
+}
+
+a {
+    width: 40%;
+    margin-left: auto;
+    margin-right: 18%;
 }
 
 .forgot-password{
-    margin-top: 0px;
+    margin-top: -5px;
     padding: 0px 100px;
-    margin-left: auto;
-    margin-right: 20%;
     font-size: 12px;
 
     font-family: var(--sds-typography-body-font-family);
