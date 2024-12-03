@@ -8,10 +8,15 @@ import "./Global.css";
 function App() {
   return (
     <Router>
-      <NavBar />
+        <header>
+          <NavBar></NavBar>
+        </header>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
+        <Route path="/" element={<Home />} /> {/* Home page when the URL is */}
+        <Route path="/about" element={<About />} /> {/* About page when the URL is /about */}
+        
+        {/*WRITE OTHER ROUTES HERE */}
+
       </Routes>
     </Router>
   );
