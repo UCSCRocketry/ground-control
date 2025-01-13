@@ -12,8 +12,8 @@ function App() {
           <NavBar></NavBar>
         </header>
       <Routes>
-        <Route path="/" element={<Home />} /> {/* Home page when the URL is */}
-        <Route path="/about" element={<About />} /> {/* About page when the URL is /about */}
+        <Route path="/" element={<Home />} /> {/* Home page URL */}
+        <Route path="/about" element={<About />} /> {/* About page URL */}
         
         {/*WRITE OTHER ROUTES HERE */}
 
