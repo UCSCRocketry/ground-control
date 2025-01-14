@@ -9,11 +9,14 @@ import "./Global.css";
 function App() {
   return (
     <Router>
-      <NavBar />
+        <header>
+          <NavBar></NavBar>
+        </header>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/fetch" element={<Fetch />} />
+          {/*WRITE OTHER ROUTES HERE */}
       </Routes>
     </Router>
   );
