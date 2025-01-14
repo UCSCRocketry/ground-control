@@ -9,6 +9,7 @@ html{
 }
 
 .center {
+    /*Work on making it responsive to different screen sizes, should always be in the center*/
     display: flex;
     justify-content: center;
     align-items: center;
