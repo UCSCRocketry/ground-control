@@ -1,14 +1,13 @@
-import BackButton from "./../components/BackButton";
-import HomeButton from "./../components/HomeButton";
-
+import Launch from "../components/Launch"
 
 export default function Home() {
     return (
-        <div>
-            <h1>Homes</h1>
-            <p>Welcome to the home page!</p>
-            <HomeButton />
-            <BackButton />
-        </div>
+        <main>
+            <h1>Recent Launches</h1>
+            <div class="launches-container">
+                <Launch name="New Launch" />
+                <Launch name="Spaceport Launch (Test)" />
+            </div>
+        </main>
     )
 }
