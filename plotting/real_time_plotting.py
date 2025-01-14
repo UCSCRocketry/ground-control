@@ -1,30 +1,42 @@
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+from serialport import Serialport
 from random import randint
 
 # https://learn.sparkfun.com/tutorials/graph-sensor-data-with-python-and-matplotlib/plot-sensor-data
 
-# SEE MAIN FILE: test_rt_plotting.py
+# TESTER FILE: test_rt_plotting.py (tests actual vs. theoretical intervals)
+# SERIAL PORT CODE: serialport.py (Serialport & MockSerialport classes)
 # Contents:
 #   - class rt_plotter (plots a single real time graph)
 #   - class multi_rt_plotter (plots multiple real time graphs in one window)
+#   - class multi_rt_plotter_deprectated (old code for reference)
 # Feel free to make improvements to code
 
 # TODO:
-#   - Update multi_rt_plotter to use same animation code as rt_plotter
-#   - Clean up & improve rt_plotter code
+#   - implement async in serial port code?
+#       - asyncio docs: https://docs.python.org/3/library/asyncio.html
+#       - pySerial asyncio: https://pythonhosted.org/pyserial/pyserial_api.html#module-serial.aio
+#       - matplotlib event loops: https://matplotlib.org/stable/users/explain/figure/interactive_guide.html
+#       - state machine?
+#   - make graphs prettier!
+#   - Research using Docker to display our graphs on the GCS website
 
 # inputs:
+#   - a MockSerialport class or Serialport class (see serialport.py)
 #   - interval (default 50)
-#   - max iterations (default 200)
+#   - timeout (default 20, number of iterations without input from port before stopping)
 # output:
-#   - a real time graph with randomized data (see update_sensor() method)
+#   - a real time graph with data from a mock or real serial port
 class rt_plotter:
 
-    def __init__(self, interval=50, max_iterations=200):
-        self.interval = interval
-        self.max_iterations = max_iterations
+    def __init__(self, serialport, interval=50, timeout=20):
+        self.serialport = serialport
 
+        self.interval = interval
+        self.timeout = timeout
+
+        self.timeout_counter = 0
         self.iteration = 0
         self.sensor = 0
 
@@ -45,41 +57,60 @@ class rt_plotter:
     def animate(self, i):
         self.update_sensor()                                            # update sensor data
 
-        #self.xs.append(dt.datetime.now().strftime('%H:%M:%S.%f'))      # update x data
-        self.xs.append(self.iteration)
-        self.ys.append(self.sensor)                                     # update y data
+        if self.timeout_counter >= self.timeout:
+            self.stop()
 
-        self.xs = self.xs[-20:]                                         # limit x data to last 20 entries
-        self.ys = self.ys[-20:]                                         # limit y data
-
-        self.ax.set_xlim(min(self.xs), max(self.xs))                    
-        self.ax.set_ylim(min(self.ys), max(self.ys))
-
-        self.ln.set_data(self.xs, self.ys)                              # update plot
-
-        if self.iteration > self.max_iterations:
-            self.ani.event_source.stop()
-            plt.close()
+        if self.sensor == None:
+            self.timeout_counter += 1
         else:
+            self.timeout_counter = 0
             self.iteration += 1
-        #print(self.ln,)
-        #return self.ln,                                                # required for blit = True
+
+            #self.xs.append(dt.datetime.now().strftime('%H:%M:%S.%f'))      # update x data
+            self.xs.append(self.iteration)
+            self.ys.append(self.sensor)                                     # update y data
+
+            self.xs = self.xs[-20:]                                         # limit x data to last 20 entries
+            self.ys = self.ys[-20:]                                         # limit y data
+
+            self.ax.set_xlim(min(self.xs), max(self.xs))                    
+            self.ax.set_ylim(min(self.ys), max(self.ys))
+
+            self.ln.set_data(self.xs, self.ys)                              # update plot
+
+            #print(self.ln,)
+            #return self.ln,                                                # required for blit = True
 
     def update_sensor(self):
-        self.sensor += randint(-3, 6)
+        self.sensor = self.serialport.read()
 
     def start(self):
         plt.subplots_adjust(bottom=0.30)
         plt.show()
 
-class multi_rt_plotter():
+    def stop(self):
+        self.ani.event_source.stop()
+        plt.close()
 
-    def __init__(self, fig, ax, interval=50, max_iterations=100):
+# inputs:
+#   - matplotlib figure
+#   - matplotlib axs by row and col
+#   - a MockSerialport class or Serialport class (see serialport.py)
+#   - interval (default 50)
+#   - timeout (default 20, number of iterations without input from port before stopping)
+# output:
+#   - a real time graph with data from a mock or real serial port
+#   - graph will be displayed along other multi_rt_plotter that have been initialized
+class multi_rt_plotter:
+
+    def __init__(self, fig, ax, serialport, interval=50, timeout=20):
         self.fig = fig
         self.ax = ax
+        self.serialport = serialport
         self.interval = interval
-        self.max_iterations = max_iterations
+        self.timeout = timeout
 
+        self.timeout_counter = 0
         self.iteration = 0
         self.sensor = 0
 
@@ -96,43 +127,56 @@ class multi_rt_plotter():
     def animate(self, i):
         self.update_sensor()                                            # update sensor data
 
-        #self.xs.append(dt.datetime.now().strftime('%H:%M:%S.%f'))      # update x data
-        self.xs.append(self.iteration)
-        self.ys.append(self.sensor)                                     # update y data
+        if self.timeout_counter >= self.timeout:
+            self.stop()
 
-        self.xs = self.xs[-20:]                                         # limit x data to last 20 entries
-        self.ys = self.ys[-20:]                                         # limit y data
-
-        self.ax.set_xlim(min(self.xs), max(self.xs))                    
-        self.ax.set_ylim(min(self.ys), max(self.ys))
-
-        self.ln.set_data(self.xs, self.ys)                              # update plot
-
-        if self.iteration > self.max_iterations:
-            self.ani.event_source.stop()
-            plt.close()
+        if self.sensor == None:
+            self.timeout_counter += 1
         else:
+            self.timeout_counter = 0
             self.iteration += 1
-        #print(self.ln,)
-        #return self.ln,                                                # required for blit = True
+
+            #self.xs.append(dt.datetime.now().strftime('%H:%M:%S.%f'))      # update x data
+            self.xs.append(self.iteration)
+            self.ys.append(self.sensor)                                     # update y data
+
+            self.xs = self.xs[-20:]                                         # limit x data to last 20 entries
+            self.ys = self.ys[-20:]                                         # limit y data
+
+            self.ax.set_xlim(min(self.xs), max(self.xs))                    
+            self.ax.set_ylim(min(self.ys), max(self.ys))
+
+            self.ln.set_data(self.xs, self.ys)                              # update plot
+
+            #print(self.ln,)
+            #return self.ln,                                                # required for blit = True
 
     def update_sensor(self):
-        self.sensor += randint(-3, 6)
+        self.sensor = self.serialport.read()
 
+    def stop(self):
+        self.ani.event_source.stop()
+        plt.close()
 
 if __name__ == '__main__':
 
+    # init serial port
+    ser = Serialport('COM2')        # real/virtual serial port (REQUIRES A REAL/VIRTUAL CONNECTION)
+    #ser = MockSerialport()         # mock serial port
+
+    # one real time plot using one serial port
+    #rt = rt_plotter(ser, 150)
+    #rt.start()
+
+    # four real time plots using one serial port
     fig, axs = plt.subplots(2, 2)
-    plot1 = multi_rt_plotter(fig, axs[0][0])
-    plot2 = multi_rt_plotter(fig, axs[0][1])
-    plot3 = multi_rt_plotter(fig, axs[1][0])
-    plot4 = multi_rt_plotter(fig, axs[1][1])
+    plot1 = multi_rt_plotter(fig, axs[0][0], ser)
+    plot2 = multi_rt_plotter(fig, axs[0][1], ser)
+    plot3 = multi_rt_plotter(fig, axs[1][0], ser)
+    plot4 = multi_rt_plotter(fig, axs[1][1], ser)
     plt.show()
 
-
-    #rt1 = multi_rt_plotter(4, 2, 2, 40, 100)
-    #rt1 = rt_plotter(40, 100)
-    #rt1.start()
+    ser.close()
 
 class multi_rt_plotter_deprecated(rt_plotter):
     # use plt.subplot_mosaic() method instead?
