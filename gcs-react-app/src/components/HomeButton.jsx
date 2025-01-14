@@ -1,13 +1,20 @@
 import "../styles/BackButton.css";
 import backArrow from '../assets/back-arrow.svg';
+import {useNavigate}  from 'react-router-dom';
 
-const HomeButton = () => {
+const BackButton = () => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate('/');
+  };
+
   return (
-    <div className="Button">
-        <img src={backArrow} alt="Back" />
-        <h1>Home</h1>
-    </div>
+    <button className="Button" onClick={handleClick}>
+      <img src={backArrow} alt="Back" />
+      <h1>Home</h1>
+    </button>
   );
 }
 
-export default HomeButton;
+export default BackButton;
