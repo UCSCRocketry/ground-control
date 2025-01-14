@@ -13,13 +13,25 @@ function Fetch() {
                 origin: "http://localhost:3000/",
             },
         });
+
+        socket.connect()
         
         socket.on("connect", (data) => {
-            console.log(data);
+            console.log("Connect event")
         });
+
+        socket.on("connected", (data) => {
+            console.log(data);
+            console.log("Connected!")
+        });
+
+        socket.on("reconnect", (data) => {
+            console.log("Reconnected!")
+        })
 
         socket.on("send_data", (data) => {
             console.log(data);
+            console.log("Received data!")
             setVelocity(data.velocity);
             setAccel(data.accel);
         });
@@ -37,9 +49,11 @@ function Fetch() {
         */
         socket.on("disconnect", (data) => {
             console.log(data);
+            console.log("Disconnected!")
         });
 
-        return function cleanup() {
+        return () => {
+            socket.offAny();
             socket.disconnect();
         }
         
