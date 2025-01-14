@@ -38,7 +38,6 @@ def background_thread():
 def connect_msg():
     print(request.sid)
     print('Client is connected!')
-
     global thread
     with thread_lock:
         if thread is None:
