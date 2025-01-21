@@ -6,6 +6,7 @@ import Login from "./pages/Login"
 import Fetch from "./pages/Fetch";
 import NavBar from "./components/NavBar";
 import "./Global.css";
+import Cesium from "./pages/Cesium";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/cesium" element={<Cesium />} />
         <Route path="/fetch" element={<Fetch />} />
         
           {/*WRITE OTHER ROUTES HERE */}
