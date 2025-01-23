@@ -13,7 +13,3 @@ export default function Home() {
         </div>
     )
 }
-
-//<p>Welcome to the login page!</p>
-//<HomeButton />
-//<BackButton />

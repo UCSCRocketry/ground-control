@@ -1,11 +1,11 @@
-html{
+.center {
     background-image: linear-gradient(#33196B, #6432D1);
     height: 100vh;
     min-height: 100vh;
 }
 
 #nav {
-    display: none;
+    visibility: hidden;
 }
 
 .center {

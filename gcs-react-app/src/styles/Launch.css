@@ -1,0 +1,35 @@
+.launches-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 2.5rem;
+    padding: 2rem 3rem;
+}
+
+#launch {
+    background-image: url('../assets/map.jpg');
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+    cursor: pointer;
+    padding: 3rem 2rem;
+}
+
+#launch:hover {
+    transform: translateY(-4px);
+}
+
+#launch h1 {
+    font-size: 1.5rem;
+    line-height: 2rem;
+    margin-bottom: 0.5rem;
+    color: white;
+    position: absolute;
+    
+}
+
+#launch p {
+    font-size: 1rem;
+    color: white;
+    padding-top: 100px
+}

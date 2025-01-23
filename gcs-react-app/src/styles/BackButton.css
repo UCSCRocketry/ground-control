@@ -1,20 +1,20 @@
-/* div {
+.button-container {
     display: flex;
     align-items: center;
     gap: 8px;
     padding: 8px 16px;
-
 }
 
-h1 {
+.back-h1 {
     font-family: DM Sans;
     font-size: 18px;
-    font-weight: 500;
+    font-weight: 100;
     line-height: 16.2px;
     text-align: left;
+    padding-top: 20px;
 }
   
-Button {
+.Button {
     display: flex;
     cursor: pointer;
     align-items: center;
@@ -30,8 +30,7 @@ Button {
 .Button:hover {
     opacity: 0.5;
 }
-  
-svg {
-    width: 20px;
-    height: 20px;
-} */
+
+.arrow-button {
+    height: 150%;
+}
