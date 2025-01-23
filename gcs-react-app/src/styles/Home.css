@@ -15,3 +15,10 @@ main {
     margin-bottom: 1.5rem;
     padding-left: 3rem;
 }
+
+.launches-container{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 3rem;
+    padding: 2rem 3rem;
+}

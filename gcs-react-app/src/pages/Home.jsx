@@ -1,7 +1,6 @@
 import Launch from "../components/Launch";
 import "../styles/Home.css";
 
-
 export default function Home() {
     return (
         <main>

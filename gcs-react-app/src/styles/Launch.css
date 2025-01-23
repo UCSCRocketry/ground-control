@@ -1,22 +1,16 @@
-.launches-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-    gap: 2.5rem;
-    padding: 2rem 3rem;
-}
-
 #launch {
     background-image: url('../assets/map.jpg');
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s;
     cursor: pointer;
-    padding: 3rem 2rem;
+    padding: 3rem 2rem 15rem;
 }
 
 #launch:hover {
     transform: translateY(-4px);
+    transition: transform 0.2s;
 }
 
 #launch h1 {
@@ -24,12 +18,24 @@
     line-height: 2rem;
     margin-bottom: 0.5rem;
     color: white;
-    position: absolute;
-    
 }
 
-#launch p {
-    font-size: 1rem;
-    color: white;
-    padding-top: 100px
+.info-row {
+    display: flex;
 }
+
+.launches-container p {
+    font-size: 1rem;
+    padding-left: 1.5rem;
+    color: black;
+    padding-top: 1rem;
+}
+
+.launches-container .edit {
+    font-size: 1.8rem;
+    color: black;
+    margin-top: 0;
+    padding-top: 0rem;
+    padding-left: 15rem;
+}
+

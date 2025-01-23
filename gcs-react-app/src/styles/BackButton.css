@@ -8,7 +8,6 @@
 .back-h1 {
     font-family: DM Sans;
     font-size: 18px;
-    font-weight: 100;
     line-height: 16.2px;
     text-align: left;
     padding-top: 20px;
@@ -32,5 +31,6 @@
 }
 
 .arrow-button {
-    height: 150%;
+    height: auto;
+    width: 21px;
 }
