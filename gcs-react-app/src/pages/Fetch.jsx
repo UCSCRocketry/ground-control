@@ -3,8 +3,8 @@ import { io } from "socket.io-client"
 
 function Fetch() {
     const [socketInstance, setSocketInstance] = useState("");
-    const [velocity, setVelocity] = useState(null);
-    const [accel, setAccel] = useState(null);
+    const [velocity, setVelocity] = useState([]);
+    const [accel, setAccel] = useState([]);
 
     useEffect(() => {
         const socket = io("localhost:9999/", {
@@ -14,26 +14,28 @@ function Fetch() {
             },
         });
 
-        socket.connect()
+        socket.connect();
         
         socket.on("connect", (data) => {
-            console.log("Connect event")
+            console.log("Connect event");
         });
 
         socket.on("connected", (data) => {
             console.log(data);
-            console.log("Connected!")
+            console.log("Connected!");
         });
 
         socket.on("reconnect", (data) => {
-            console.log("Reconnected!")
+            console.log("Reconnected!");
         })
 
         socket.on("send_data", (data) => {
             console.log(data);
-            console.log("Received data!")
-            setVelocity(data.velocity);
-            setAccel(data.accel);
+            console.log("Received data!");
+            setVelocity(velocity => [...velocity, data.velocity, 0]);
+            setVelocity(velocity => velocity.slice(-6, -1));
+            setAccel(accel => [...accel, data.accel, 0]);
+            setAccel(accel => accel.slice(-6, -1));
         });
         /*
         fetch("http://localhost:9999/api/test", {
@@ -49,7 +51,7 @@ function Fetch() {
         */
         socket.on("disconnect", (data) => {
             console.log(data);
-            console.log("Disconnected!")
+            console.log("Disconnected!");
         });
 
         return () => {
@@ -66,10 +68,22 @@ function Fetch() {
     return (
         <div>
             <h1>Fetch Test</h1>
-            {velocity && <p>Velocity: {velocity}</p>}
-            {accel && <p>Acceleration: {accel}</p>}
-            <div>
-            </div>
+            {velocity && <p>
+            Velocity:
+            <ol>
+                {velocity.map((velocity, i) => (
+                    <li key={i}>{velocity}</li>
+                ))}
+            </ol>
+            </p>}
+            {accel && <p>
+            Accel:
+            <ol>
+                {accel.map((accel, i) => (
+                    <li key={i}>{accel}</li>
+                ))}
+            </ol>
+            </p>}
         </div>
     );
 }
