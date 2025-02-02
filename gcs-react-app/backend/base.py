@@ -15,10 +15,23 @@ socketio = SocketIO(api, async_mode="eventlet", cors_allowed_origins="*", ping_i
 thread = None
 thread_event = Event()
 thread_lock = Lock()
+thread_update = None
 
-velocity = 0
-accel = 0
+velocity = [0]
+accel = [0]
 connected_users = 0
+
+# TODO: add queue for data to be sent to prevent duplicate sends
+def update_data():
+    global velocity, accel
+    while True:
+        socketio.sleep(2)
+        print("updated data!")
+        velocity.append(randint(-10, 10))
+        accel.append(randint(-10, 10))
+        velocity = velocity[-5:]
+        accel = accel[-5:]
+
 
 def background_thread(event):
     global velocity, accel, thread
@@ -27,14 +40,12 @@ def background_thread(event):
         while event.is_set():
             socketio.sleep(2)
             count += 1
-            velocity += randint(-3, 10)
-            accel += randint(-3, 10)
             print('Sending data...')
-            with api.test_request_context('/'):
+            with api.test_request_context('/'):         
                 socketio.emit('send_data',
                             {'data': 'Server generated event', 
-                            'velocity': velocity,
-                            'accel': accel,
+                            'velocity': velocity[-1],
+                            'accel': accel[-1],
                             'count': count})
     finally:
         event.clear()
@@ -42,17 +53,22 @@ def background_thread(event):
 
 @socketio.on("connect")
 def connect_msg():
-    global thread, connected_users
+    global thread, thread_update, connected_users
+
     connected_users += 1
     print(request.sid)
     print(f'Client is connected! Current users: {connected_users}')
+
+    if thread_update is None:
+        thread_update = socketio.start_background_task(update_data)
+
     with thread_lock:
         if thread is None:
             print("Starting background thread...")
             thread_event.set()
             thread = socketio.start_background_task(background_thread, thread_event)
     socketio.emit('connected', {'data': f"id: {request.sid} is connected."})
-    
+
 
 @socketio.on("disconnect")
 def disconnect_msg():
