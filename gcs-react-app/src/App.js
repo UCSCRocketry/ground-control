@@ -18,9 +18,10 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/cesium" element={<Cesium />} />
         <Route path="/fetch" element={<Fetch />} />
         
+        <Route path="/cesium" element={<Cesium />} />
+
           {/*WRITE OTHER ROUTES HERE */}
 
       </Routes>
