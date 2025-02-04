@@ -47,6 +47,8 @@ If you want to deactivate the environment, simply type into the terminal:
     pip install flask
     pip install python-dotenv
     pip install flask-cors          // this library allows us to route across domains (frontend <--> backend)
+    pip install flask-socketio      // websocket library for real-time changes
+    pip install eventlet            // async library for socketio
     
 If you get an error about permissions when running pip (such as WinError2), try adding "--user" to the command like so:
 
@@ -67,4 +69,4 @@ Start up the backend and the frontend using the following commands (you will nee
     npm run start-backend           // no need to run this if your backend is still up!
     npm start                       // starts the frontend
 
-Then navigate to http://localhost:3000/fetch . There should be a simple page displaying the values from the backend!
+Then navigate to http://localhost:3000/fetch . There should be a simple page displaying real-time values from the backend!
