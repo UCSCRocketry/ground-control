@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Cartesian3, Color, Ion } from "cesium";
 import { Viewer, Entity } from "resium";
 import "cesium/Build/Cesium/Widgets/widgets.css";
+import { io } from "socket.io-client"
 
 /* 
  * opens a websocket connection
@@ -23,11 +24,29 @@ const CesiumViewer = () => {
 
     //open websocket 
     //TALK W MICHAEL ABT THIS
-    const socket = new WebSocket('ws://localhost:9999');
+    const socket = io("localhost:9999/", {
+      transports: ["websocket"],
+      cors: {
+        origin: "http://localhost:3000/",
+      },
+    });
 
-    //fetches the real-time JSON data from websocket 
-    socket.onmessage = (event) => {
-      const newData = JSON.parse(event.data);
+    //backend connects to front
+    socket.connect()
+    
+    socket.on("connect", (data) => {
+      console.log("Connect event")
+    });
+
+    //testing connection
+    socket.on("connected", (data) => {
+      console.log(data);
+      console.log("Connected!")
+    });
+
+    //fetches the real-time JSON data from websocket
+    socket.on("send_data", (data) => {
+      const newData = JSON.parse(data);
 
       //UDPATE BASED ON MESSAGE RECIEVED (talk to edison)
       //new entity per message
@@ -39,7 +58,7 @@ const CesiumViewer = () => {
       };
 
       setEntities((prevEntities) => [...prevEntities, newEntity]);
-    };
+    }); 
 
     return () => {
       socket.close();
