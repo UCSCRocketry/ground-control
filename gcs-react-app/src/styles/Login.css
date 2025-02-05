@@ -1,32 +1,57 @@
-.center {
-    background-image: linear-gradient(#33196B, #6432D1);
-    height: 100vh;
-    min-height: 100vh;
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
 }
 
 #nav {
-    visibility: hidden;
+    display: none;
 }
 
 .center {
-    /*Work on making it responsive to different screen sizes, should always be in the center*/
+    background-image: linear-gradient(#33196B, #6432D1);
+    height: 100vh;
+    width: 100vw; /* Ensure full width */
+    position: fixed; /* Fix position to prevent scrolling */
+    top: 0;
+    left: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     flex-direction: column;
-
-    margin-top: 8%;
-    margin-left: 30%;
 }
 
 img {
-    width: 40%;
+    width: 30%;
+    max-width: 300px; /* Add a max-width to prevent too large images */
 }
 
 input {
-    border: none;
-    border-radius: 5px;
-    text-align: center;
+    width: 100%;      /* Make inputs full width of their container */
+    max-width: 400px; /* But limit their maximum width */
+    margin: 10px 0;   /* Add some vertical spacing between inputs */
+}
+
+#username {
+    padding: 10px 30px;
+    font-style: italic;
+    font-weight: 150; 
+    font-size: 12px;
+}
+
+#password {
+    padding: 10px 20px;
+    font-weight: 600;
+}
+
+.forgot-password {
+    margin-top: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.337);
+    text-align: right; /* Align text to the right */
+    width: 100%;
+    max-width: 400px; /* Match input width */
 }
 
 input::placeholder {
@@ -35,23 +60,6 @@ input::placeholder {
     line-height: 22.4px;
     text-underline-position: from-font;
     text-decoration-skip-ink: none;
-}
-
-#username {
-    width: 55%;
-    height: 30%;
-    padding: 10px 30px;
-    font-style: italic;
-    font-weight: 150; 
-    font-size: 12px;
-}
-
-#password {
-    margin-top: 20px;
-    width: 40%;
-    line-height: 18.4px;
-    padding: 10px 20px;
-    font-weight: 600;
 }
 
 a {
@@ -71,3 +79,4 @@ a {
 
     color: rgba(255, 255, 255, 0.337);
 }
+
