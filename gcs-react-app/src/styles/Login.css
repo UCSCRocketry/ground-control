@@ -11,8 +11,8 @@ html, body {
 .center {
     background-image: linear-gradient(#33196B, #6432D1);
     height: 100vh;
-    width: 100vw; /* Ensure full width */
-    position: fixed; /* Fix position to prevent scrolling */
+    width: 100vw; 
+    position: fixed;
     top: 0;
     left: 0;
     display: flex;
@@ -23,13 +23,13 @@ html, body {
 
 img {
     width: 30%;
-    max-width: 300px; /* Add a max-width to prevent too large images */
+    max-width: 300px; 
 }
 
 input {
-    width: 100%;      /* Make inputs full width of their container */
-    max-width: 400px; /* But limit their maximum width */
-    margin: 10px 0;   /* Add some vertical spacing between inputs */
+    width: 100%;     
+    max-width: 400px;
+    margin: 10px 0; 
 }
 
 #username {
@@ -49,9 +49,9 @@ input {
     font-size: 12px;
     font-weight: 600;
     color: rgba(255, 255, 255, 0.337);
-    text-align: right; /* Align text to the right */
+    text-align: right; 
     width: 100%;
-    max-width: 400px; /* Match input width */
+    max-width: 400px; 
 }
 
 input::placeholder {
