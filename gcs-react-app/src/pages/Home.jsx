@@ -1,4 +1,6 @@
 import Launch from "../components/Launch";
+import NewLaunch from "../components/NewLaunch";
+
 import "../styles/Home.css";
 
 export default function Home() {
@@ -6,7 +8,7 @@ export default function Home() {
         <main>
             <h1 className="recent-launches">Recent Launches</h1>
             <div class="launches-container">
-                <Launch name="New Launch" />
+                <NewLaunch />
                 <Launch name="Spaceport Launch (Test)" />
                 <Launch name="Spaceport Launch (Test)" />
                 <Launch name="Spaceport Launch (Test)" />
