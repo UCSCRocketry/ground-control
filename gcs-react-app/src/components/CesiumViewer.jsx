@@ -34,12 +34,12 @@ const CesiumViewer = () => {
     //backend connects to front
     socket.connect()
     
-    socket.on("connecttt", () => {
+    socket.on("connect", () => {
       console.log("connect eventtt")
     });
 
     //testing connection
-    socket.on("connecteddd", (data) => {
+    socket.on("connected", (data) => {
       console.log(data);
       console.log("connecteddd!", data)
     });
@@ -101,7 +101,7 @@ const CesiumViewer = () => {
       ref={viewerRef}
       style={{ width: "100%", height: isFullscreen ? "100vh" : "calc(100vh - 50px)" }}
     >
-      <button
+      {/* <button
         onClick={toggleFullscreen}
         style={{
           position: "absolute",
@@ -116,9 +116,11 @@ const CesiumViewer = () => {
         }}
       >
         {isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-      </button>
+      </button> */}
 
-      <Viewer full>
+
+      {/* problem in here */}
+      {/* <Viewer>
         {entities.map((entity) => (
           <Entity
             key={entity.id}
@@ -128,7 +130,18 @@ const CesiumViewer = () => {
             description={entity.description}
           />
         ))}
+      </Viewer> */}
+
+      <Viewer full>
+        <Entity
+          description="test"
+          name="tokyo"
+          point={{ pixelSize: 10 }}
+          position={Cartesian3.fromDegrees(139.767052, 35.681167, 100)}
+        />
       </Viewer>
+      {/* to here */}
+
     </div>
   );
 };

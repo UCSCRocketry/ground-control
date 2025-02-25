@@ -1,0 +1,36 @@
+.button-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+}
+
+.back-h1 {
+    font-family: DM Sans;
+    font-size: 18px;
+    line-height: 16.2px;
+    text-align: left;
+    padding-top: 20px;
+}
+  
+.Button {
+    display: flex;
+    cursor: pointer;
+    align-items: center;
+
+    background: transparent;
+    transition: opacity 0.2s ease;
+    gap: 8px;
+
+    background: transparent;
+    border: none;
+}
+
+.Button:hover {
+    opacity: 0.5;
+}
+
+.arrow-button {
+    height: auto;
+    width: 21px;
+}

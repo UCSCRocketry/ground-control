@@ -34,36 +34,23 @@ def update_data():
 
 
 def background_thread(event):
-    # global velocity, accel, thread
-    # count = 0
-    # try:
-    #     while event.is_set():
-    #         socketio.sleep(2)
-    #         count += 1
-    #         print('Sending data...')
-    #         with api.test_request_context('/'):         
-    #             socketio.emit('send_data',
-    #                         {'data': 'Server generated event', 
-    #                         'longitude': velocity[-1],
-    #                         'accel': accel[-1],
-    #                         'count': count})
-    # finally:
-    #     event.clear()
-    #     thread = None
-
-    #TEST CESIUM
+    global velocity, accel, thread
     count = 0
-    while event.is_set():
-        socketio.sleep(2)
-        count += 1
-        print('Sending test data...')
-        socketio.emit('send_data', {
-            'id': f'test-{count}',
-            'longitude': -118.285,  
-            'latitude': 34.0219,    
-            'altitude': 1000
-        })
-
+    try:
+        while event.is_set():
+            socketio.sleep(2)
+            count += 1
+            print('Sending data...')
+            with api.test_request_context('/'):         
+                socketio.emit('send_data',
+                            {'id': f'test-{count}',
+                             'longitude': -118.285,  
+                             'latitude': 34.0219,    
+                            'altitude': 1000
+                            })
+    finally:
+        event.clear()
+        thread = None
 
 @socketio.on("connect")
 def connect_msg():
