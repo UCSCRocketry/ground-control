@@ -34,22 +34,36 @@ def update_data():
 
 
 def background_thread(event):
-    global velocity, accel, thread
+    # global velocity, accel, thread
+    # count = 0
+    # try:
+    #     while event.is_set():
+    #         socketio.sleep(2)
+    #         count += 1
+    #         print('Sending data...')
+    #         with api.test_request_context('/'):         
+    #             socketio.emit('send_data',
+    #                         {'data': 'Server generated event', 
+    #                         'longitude': velocity[-1],
+    #                         'accel': accel[-1],
+    #                         'count': count})
+    # finally:
+    #     event.clear()
+    #     thread = None
+
+    #TEST CESIUM
     count = 0
-    try:
-        while event.is_set():
-            socketio.sleep(2)
-            count += 1
-            print('Sending data...')
-            with api.test_request_context('/'):         
-                socketio.emit('send_data',
-                            {'data': 'Server generated event', 
-                            'longitude': velocity[-1],
-                            'accel': accel[-1],
-                            'count': count})
-    finally:
-        event.clear()
-        thread = None
+    while event.is_set():
+        socketio.sleep(2)
+        count += 1
+        print('Sending test data...')
+        socketio.emit('send_data', {
+            'id': f'test-{count}',
+            'longitude': -118.285,  
+            'latitude': 34.0219,    
+            'altitude': 1000
+        })
+
 
 @socketio.on("connect")
 def connect_msg():
@@ -68,7 +82,7 @@ def connect_msg():
             thread_event.set()
             thread = socketio.start_background_task(background_thread, thread_event)
     socketio.emit('connected', {'data': f"id: {request.sid} is connected."})
-
+ 
 
 @socketio.on("disconnect")
 def disconnect_msg():

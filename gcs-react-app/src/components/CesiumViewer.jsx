@@ -22,9 +22,9 @@ const CesiumViewer = () => {
     console.log("Component mounted");
     Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJiYTYwZDIwZi0xNTkzLTQ3ZjUtOWEwNC03NzVjMmRiNDE0ZWIiLCJpZCI6MjcyOTc1LCJpYXQiOjE3Mzg1NjAwMTV9.ZM3udPGWtEBSmTb5qTKQOOsbyWje52wUg8B9vomxAUo';
 
-    //open websocket 
+    //open websocket
     //TALK W MICHAEL ABT THIS
-    const socket = io("localhost:9999/", {
+    const socket = io("http://localhost:9999", {
       transports: ["websocket"],
       cors: {
         origin: "http://localhost:3000/",
@@ -34,31 +34,51 @@ const CesiumViewer = () => {
     //backend connects to front
     socket.connect()
     
-    socket.on("connect", (data) => {
-      console.log("Connect event")
+    socket.on("connecttt", () => {
+      console.log("connect eventtt")
     });
 
     //testing connection
-    socket.on("connected", (data) => {
+    socket.on("connecteddd", (data) => {
       console.log(data);
-      console.log("Connected!")
+      console.log("connecteddd!", data)
     });
 
     //fetches the real-time JSON data from websocket
     socket.on("send_data", (data) => {
-      const newData = JSON.parse(data);
+      // const newData = JSON.parse(data); //commented out for testing with dummy data from backend
+      console.log("Received data:", typeof data, data); // debug
 
-      //UDPATE BASED ON MESSAGE RECIEVED (talk to edison)
-      //new entity per message
+    //   //UDPATE BASED ON MESSAGE RECIEVED
+    //   //new entity per message
+    //   const newEntity = {
+    //     id: data.id,
+    //     position: Cartesian3.fromDegrees(data.longitude, data.latitude, data.altitude),
+    //     point: { pixelSize: 10, color: Color.RED },
+    //     description: `ID: ${data.id}`,
+    //   };
+
+    //   setEntities((prevEntities) => [...prevEntities, newEntity]);
+    // }); 
+      if (!data || typeof data !== "object") {
+        console.error("Invalid data format:", data);
+        return;
+      }
+
+      if (!data.id || !data.longitude || !data.latitude || !data.altitude) {
+        console.error("Incomplete data received:", data);
+        return;
+      }
+
       const newEntity = {
-        id: newData.id,
-        position: Cartesian3.fromDegrees(newData.longitude, newData.latitude, newData.altitude),
+        id: data.id,
+        position: Cartesian3.fromDegrees(data.longitude, data.latitude, data.altitude),
         point: { pixelSize: 10, color: Color.RED },
-        description: `ID: ${newData.id}`,
+        description: `ID: ${data.id}`,
       };
 
       setEntities((prevEntities) => [...prevEntities, newEntity]);
-    }); 
+    });
 
     return () => {
       socket.close();
