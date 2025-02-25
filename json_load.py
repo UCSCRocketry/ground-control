@@ -43,7 +43,6 @@ for metric in data["metrics"]: # loop through each metric source
    # Insert (launch_id, sensor_type, sensor_id, x_value, y_value, z_value, unit) into the launch_metrics table
    TODO
 
-
 # Commit and close
 connnection.commit()
 cursor.close()
