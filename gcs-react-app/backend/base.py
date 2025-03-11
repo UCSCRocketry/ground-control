@@ -3,9 +3,12 @@ import eventlet
 
 from flask import Flask, request
 from flask_cors import CORS
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO
 from threading import Lock, Event
-from random import randint
+from Serialport import MockSerialport
+from serial2num_PORT import serial2num
+
+from generate_data import generate
 
 api = Flask(__name__)
 api.config['SECRET_KEY'] = 'secret!'
@@ -17,58 +20,67 @@ thread_event = Event()
 thread_lock = Lock()
 thread_update = None
 
-velocity = [0]
-accel = [0]
+ser = None
+#imu, highg, lowg, gyro, barometer, magnetometer = []
+
+queue = []
 connected_users = 0
 
-# TODO: add queue for data to be sent to prevent duplicate sends
+# TODO:
+# - send graph state to frontend on connect
+# - change update_data() to start on backend start, rather than first user connect
+# - clean up backend structure (https://hackersandslackers.com/flask-application-factory/)
+
 def update_data():
-    global velocity, accel
+    global ser, queue
     while True:
         socketio.sleep(2)
         print("updated data!")
-        velocity.append(randint(-10, 10))
-        accel.append(randint(-10, 10))
-        velocity = velocity[-5:]
-        accel = accel[-5:]
+        generate(ser)
+        data = serial2num(ser)
+        for item in data:
+            queue.insert(0, item)
 
-
-def background_thread(event):
-    global velocity, accel, thread
+def send_data(event):
+    global thread, queue
     count = 0
     try:
         while event.is_set():
-            socketio.sleep(2)
-            count += 1
-            print('Sending data...')
-            with api.test_request_context('/'):         
-                socketio.emit('send_data',
-                            {'data': 'Server generated event', 
-                            'velocity': velocity[-1],
-                            'accel': accel[-1],
-                            'count': count})
+            socketio.sleep(1)
+            while len(queue) > 0:
+                count += 1
+                print('Sending data...')
+                with api.test_request_context('/'):
+                    packet = queue.pop()   
+                    print(packet) 
+                    socketio.emit(f'send_data_{packet[0]}',
+                                {'label': 'Server generated event', 
+                                'name': packet[0],
+                                'num': packet[1],
+                                'data': packet[2],
+                                'count': count})
     finally:
         event.clear()
         thread = None
 
 @socketio.on("connect")
 def connect_msg():
-    global thread, thread_update, connected_users
+    global thread, thread_update, connected_users, ser
 
     connected_users += 1
     print(request.sid)
     print(f'Client is connected! Current users: {connected_users}')
 
     if thread_update is None:
+        ser = MockSerialport()
         thread_update = socketio.start_background_task(update_data)
 
     with thread_lock:
         if thread is None:
             print("Starting background thread...")
             thread_event.set()
-            thread = socketio.start_background_task(background_thread, thread_event)
+            thread = socketio.start_background_task(send_data, thread_event)
     socketio.emit('connected', {'data': f"id: {request.sid} is connected."})
-
 
 @socketio.on("disconnect")
 def disconnect_msg():
