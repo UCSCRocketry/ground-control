@@ -31,6 +31,7 @@ connected_users = 0
 # - change update_data() to start on backend start, rather than first user connect
 # - clean up backend structure (https://hackersandslackers.com/flask-application-factory/)
 
+# generates randomized data from a serialport every 2 seconds
 def update_data():
     global ser, queue
     while True:
@@ -41,6 +42,7 @@ def update_data():
         for item in data:
             queue.insert(0, item)
 
+# sends any data waiting in the queue to the frontend
 def send_data(event):
     global thread, queue
     count = 0
@@ -63,6 +65,7 @@ def send_data(event):
         event.clear()
         thread = None
 
+# inits threads on first connect and maintains connected_users
 @socketio.on("connect")
 def connect_msg():
     global thread, thread_update, connected_users, ser
@@ -82,6 +85,7 @@ def connect_msg():
             thread = socketio.start_background_task(send_data, thread_event)
     socketio.emit('connected', {'data': f"id: {request.sid} is connected."})
 
+# stops send_data thread if no users are connected
 @socketio.on("disconnect")
 def disconnect_msg():
     global thread, connected_users
@@ -98,6 +102,7 @@ def disconnect_msg():
 def reconnect_msg():
     print('Client reconnected!')
 
+# example GET route
 @api.route('/api/test')
 def testroute():
     data = {
