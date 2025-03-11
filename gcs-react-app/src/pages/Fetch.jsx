@@ -3,8 +3,12 @@ import { io } from "socket.io-client"
 
 function Fetch() {
     const [socketInstance, setSocketInstance] = useState("");
-    const [velocity, setVelocity] = useState([]);
-    const [accel, setAccel] = useState([]);
+    const [IMU, setIMU] = useState([]);
+    const [highG, setHighG] = useState([]);
+    const [lowG, setLowG] = useState([]);
+    const [gyro, setGyro] = useState([]);
+    const [baro, setBaro] = useState([]);
+    const [mag, setMag] = useState([]);
 
     useEffect(() => {
         const socket = io("localhost:9999/", {
@@ -29,14 +33,48 @@ function Fetch() {
             console.log("Reconnected!");
         })
 
-        socket.on("send_data", (data) => {
+        socket.on("send_data_IMU", (data) => {
             console.log(data);
             console.log("Received data!");
-            setVelocity(velocity => [...velocity, data.velocity, 0]);
-            setVelocity(velocity => velocity.slice(-6, -1));
-            setAccel(accel => [...accel, data.accel, 0]);
-            setAccel(accel => accel.slice(-6, -1));
+            setIMU(IMU => [...IMU, ...data.data, 0]);
+            setIMU(IMU => IMU.slice(-6, -1));
         });
+
+        socket.on("send_data_HIGH_G_ACCEL", (data) => {
+            console.log(data);
+            console.log("Received data!");
+            setHighG(highG => [...highG, ...data.data, 0]);
+            setHighG(highG => highG.slice(-6, -1));
+        });
+
+        socket.on("send_data_LOW_G_ACCEL", (data) => {
+            console.log(data);
+            console.log("Received data!");
+            setLowG(lowG => [...lowG, ...data.data, 0]);
+            setLowG(lowG => lowG.slice(-6, -1));
+        });
+
+        socket.on("send_data_GYROSCOPE", (data) => {
+            console.log(data);
+            console.log("Received data!");
+            setGyro(gyro => [...gyro, ...data.data, 0]);
+            setGyro(gyro => gyro.slice(-6, -1));
+        });
+
+        socket.on("send_data_BAROMETER", (data) => {
+            console.log(data);
+            console.log("Received data!");
+            setBaro(baro => [...baro, ...data.data, 0]);
+            setBaro(baro => baro.slice(-6, -1));
+        });
+
+        socket.on("send_data_MAGNETOMETER", (data) => {
+            console.log(data);
+            console.log("Received data!");
+            setMag(mag => [...mag, ...data.data, 0]);
+            setMag(mag => mag.slice(-6, -1));
+        });
+
         /*
         fetch("http://localhost:9999/api/test", {
             method: "GET",
@@ -68,19 +106,51 @@ function Fetch() {
     return (
         <div>
             <h1>Fetch Test</h1>
-            {velocity && <p>
-            Velocity:
+            {IMU && <p>
+            IMU:
             <ol>
-                {velocity.map((velocity, i) => (
-                    <li key={i}>{velocity}</li>
+                {IMU.map((IMU, i) => (
+                    <li key={i}>{IMU}</li>
                 ))}
             </ol>
             </p>}
-            {accel && <p>
-            Accel:
+            {highG && <p>
+            HIGH G:
             <ol>
-                {accel.map((accel, i) => (
-                    <li key={i}>{accel}</li>
+                {highG.map((highG, i) => (
+                    <li key={i}>{highG}</li>
+                ))}
+            </ol>
+            </p>}
+            {lowG && <p>
+            LOW G:
+            <ol>
+                {lowG.map((lowG, i) => (
+                    <li key={i}>{lowG}</li>
+                ))}
+            </ol>
+            </p>}
+            {gyro && <p>
+            GYROSCOPE:
+            <ol>
+                {gyro.map((gyro, i) => (
+                    <li key={i}>{gyro}</li>
+                ))}
+            </ol>
+            </p>}
+            {baro && <p>
+            BAROMETER:
+            <ol>
+                {baro.map((baro, i) => (
+                    <li key={i}>{baro}</li>
+                ))}
+            </ol>
+            </p>}
+            {mag && <p>
+            MAGNETOMETER:
+            <ol>
+                {mag.map((mag, i) => (
+                    <li key={i}>{mag}</li>
                 ))}
             </ol>
             </p>}
