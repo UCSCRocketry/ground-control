@@ -2,7 +2,10 @@
   "name": "gcs-react-app",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://localhost:9999/",
+  "options": {
+    "allowedHosts": ["localhost", ".localhost"],
+    "proxy": "http://localhost:9999/"
+  },
   "dependencies": {
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
