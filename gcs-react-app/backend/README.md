@@ -49,6 +49,7 @@ If you want to deactivate the environment, simply type into the terminal:
     pip install flask-cors          // this library allows us to route across domains (frontend <--> backend)
     pip install flask-socketio      // websocket library for real-time changes
     pip install eventlet            // async library for socketio
+    pip install pyserial            // serial library for reading data from port
     
 If you get an error about permissions when running pip (such as WinError2), try adding "--user" to the command like so:
 
