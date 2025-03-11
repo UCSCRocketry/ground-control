@@ -4,7 +4,7 @@
   "private": true,
   "options": {
     "allowedHosts": ["localhost", ".localhost"],
-    "proxy": "https://localhost:9999/"
+    "proxy": "http://localhost:9999/"
   },
   "dependencies": {
     "@testing-library/jest-dom": "^5.17.0",
