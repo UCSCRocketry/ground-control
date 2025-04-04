@@ -21,7 +21,12 @@ thread_lock = Lock()
 thread_update = None
 
 ser = None
-#imu, highg, lowg, gyro, barometer, magnetometer = []
+state = {"IMU" : [],
+         "HIGH_G_ACCEL" : [],
+         "LOW_G_ACCEL" : [],
+         "GYROSCOPE" : [],
+         "BAROMETER" : [],
+         "MAGNETOMETER" : []}
 
 queue = []
 connected_users = 0
@@ -44,7 +49,7 @@ def update_data():
 
 # sends any data waiting in the queue to the frontend
 def send_data(event):
-    global thread, queue
+    global thread, queue, state
     count = 0
     try:
         while event.is_set():
@@ -53,7 +58,9 @@ def send_data(event):
                 count += 1
                 print('Sending data...')
                 with api.test_request_context('/'):
-                    packet = queue.pop()   
+                    packet = queue.pop()
+                    state[packet[0]].extend(packet[2])
+                    state[packet[0]][-5:]
                     print(packet) 
                     socketio.emit(f'send_data_{packet[0]}',
                                 {'label': 'Server generated event', 
@@ -65,6 +72,15 @@ def send_data(event):
         event.clear()
         thread = None
 
+def send_state():
+    global state
+    for s in state:
+        socketio.emit(f'send_data_{s}',
+                      {'label': 'Server generated event',
+                       'name': s,
+                       'num': len(state[s]),
+                       'data': state[s]})
+
 # inits threads on first connect and maintains connected_users
 @socketio.on("connect")
 def connect_msg():
@@ -73,6 +89,8 @@ def connect_msg():
     connected_users += 1
     print(request.sid)
     print(f'Client is connected! Current users: {connected_users}')
+
+    send_state()
 
     if thread_update is None:
         ser = MockSerialport()
