@@ -1,5 +1,7 @@
 import RocketLogo from "./../assets/RocketEmblem.png";
 import "../styles/Login.css";
+import "../styles/NavBar.css";
+
 
 export default function Home() {
     return (
@@ -13,7 +15,3 @@ export default function Home() {
         </div>
     )
 }
-
-//<p>Welcome to the login page!</p>
-//<HomeButton />
-//<BackButton />

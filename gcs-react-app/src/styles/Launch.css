@@ -1,0 +1,67 @@
+#launch {
+    background-image: url('../assets/map.jpg');
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+    cursor: pointer;
+    padding: 3rem 2rem 15rem;
+    height: 22rem;
+    max-height: 22rem;
+}
+
+#new-launch {
+    background-color: green;
+    background-image: none;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+    cursor: pointer;
+    padding: 7.75rem 2rem 7.75rem;
+    color: white;
+    height: 22rem;
+    max-height: 22rem;
+    
+}
+
+#launch:hover, #new-launch:hover {
+    transform: translateY(-4px);
+    transition: transform 0.2s;
+}
+
+#launch h1 {
+    font-size: 1.5rem;
+    line-height: 2rem;
+    margin-bottom: 0.5rem;
+    color: white;
+}
+
+#new-launch h1 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    text-align: center;
+    line-height: 2.5rem;
+}
+
+.info-row {
+    display: flex;
+}
+
+.launches-container p {
+    font-size: 1rem;
+    padding-left: 1.5rem;
+    color: black;
+    padding-top: 1rem;
+}
+
+.launches-container .edit {
+    font-size: 1.8rem;
+    color: black;
+    margin-top: 0;
+    padding-top: 0rem;
+    padding-left: 14rem;
+}
+

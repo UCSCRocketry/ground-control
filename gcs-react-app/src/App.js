@@ -4,6 +4,7 @@ import Home from "./pages/Home";
 import About from "./pages/About";
 import Login from "./pages/Login"
 import Fetch from "./pages/Fetch";
+import Launch from "./pages/LaunchPage";
 import NavBar from "./components/NavBar";
 import "./Global.css";
 
@@ -18,7 +19,9 @@ function App() {
         <Route path="/about" element={<About />} />
         <Route path="/login" element={<Login />} />
         <Route path="/fetch" element={<Fetch />} />
-        
+        <Route path="/launch" element={<Launch />} />
+
+
           {/*WRITE OTHER ROUTES HERE */}
 
       </Routes>
