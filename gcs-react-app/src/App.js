@@ -8,6 +8,7 @@ import Launch from "./pages/LaunchPage";
 import NavBar from "./components/NavBar";
 import Graphs from "./pages/Graphs";
 import "./Global.css";
+import GraphsToBackend from "./pages/GraphsToBackend";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route path="/fetch" element={<Fetch />} />
         <Route path="/launch" element={<Launch />} />
         <Route path="/graphs" element={<Graphs />} />
+        <Route path="/graphsBack" element={<GraphsToBackend />} />
 
 
 
