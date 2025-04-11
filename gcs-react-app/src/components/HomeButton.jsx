@@ -10,10 +10,12 @@ const BackButton = () => {
   };
 
   return (
-    <button className="Button" onClick={handleClick}>
-      <img src={backArrow} alt="Back" />
-      <h1>Home</h1>
-    </button>
+    <div className="button-container">
+      <button className="Button" onClick={handleClick}>
+        <img src={backArrow} alt="Back" />
+        <h1 className="return-h1">Home</h1>
+      </button>
+    </div>
   );
 }
 
