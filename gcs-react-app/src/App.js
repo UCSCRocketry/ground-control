@@ -6,6 +6,7 @@ import Login from "./pages/Login"
 import Fetch from "./pages/Fetch";
 import Launch from "./pages/LaunchPage";
 import NavBar from "./components/NavBar";
+import Graphs from "./pages/Graphs";
 import "./Global.css";
 
 function App() {
@@ -20,6 +21,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/fetch" element={<Fetch />} />
         <Route path="/launch" element={<Launch />} />
+        <Route path="/graphs" element={<Graphs />} />
+
 
 
           {/*WRITE OTHER ROUTES HERE */}
