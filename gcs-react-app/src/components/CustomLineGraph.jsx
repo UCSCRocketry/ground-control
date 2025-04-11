@@ -33,7 +33,7 @@ const CustomLineGraph = ({ title, data, label = 'Home' }) => {
     scales: {
       x: {
         grid: { display: false },
-        labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        labels: [1, 2, 3, 4, 5],
         ticks: {
           color: 'black',
           font: { family: 'Nunito', size: 12 },
@@ -42,8 +42,8 @@ const CustomLineGraph = ({ title, data, label = 'Home' }) => {
       y: {
         grid: { display: false },
         border: { display: false },
-        min: 0,
-        max: 80,
+        suggestedMin: 0,
+        suggestedMax: 300,
         ticks: {
           stepSize: 10,
           color: 'black',
