@@ -1,4 +1,5 @@
 import BackButton from "./../components/BackButton";
+import HomeButton from "./../components/HomeButton";
 
 export default function About() {
     return (
@@ -6,7 +7,6 @@ export default function About() {
             <h1>About</h1>
             <p>Welcome to the about page!</p>
             <BackButton />
-
         </div>
     )
 }
