@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { io } from "socket.io-client"
+import Gauge from "./../components/Gauge";
 
 
 //Gauge accepts ({ value, min, max, title }) => {
@@ -58,11 +59,33 @@ function GraphsToBackend() {
             <h1>IMU Test</h1>
             {IMU && <p>
             IMU:
+            
+            {/* create base line empty component */}
             <ol>
-                {IMU.map((IMU, i) => (
-                    <li key={i}>{IMU}</li>
-                ))}
+                return (
+                        <div>
+                        <Gauge value={0} min={0} max={100} title="Tester Guage Graph" />
+                        </div>
+                        );
             </ol>
+
+
+            {/* pass updating values from backend into gauge */}
+            <ol>                
+                {IMU.map((value, i) => {
+                    
+                    //if value < 100 then set maxVal to 100 otherwise add 100 to it if its over 100
+                    const maxVal = value < 100 ? 100 : value + 100
+                    
+                    return (
+                    <div>
+                    <Gauge value={value} min={0} max={maxVal} title="Tester Guage Graph" />
+                    </div>
+                    );
+                })}
+            </ol>
+
+
             </p>}
         </div>
     );

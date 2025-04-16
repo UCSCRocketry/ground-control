@@ -59,6 +59,21 @@ def send_data(event):
                 print('Sending data...')
                 with api.test_request_context('/'):
                     packet = queue.pop()
+
+                    #send only IMU data (FOR TESTING PURPOUSE)
+                    if (packet[0] == "IMU"):
+                        state[packet[0]].extend(packet[2])
+                        state[packet[0]][-5:]
+                        print(packet) 
+                        socketio.emit(f'send_data_{packet[0]}',
+                                {'label': 'Server generated event', 
+                                'name': packet[0],
+                                'num': packet[1],
+                                'data': packet[2],
+                                'count': count})
+
+
+                    #send all types of data
                     state[packet[0]].extend(packet[2])
                     state[packet[0]][-5:]
                     print(packet) 
