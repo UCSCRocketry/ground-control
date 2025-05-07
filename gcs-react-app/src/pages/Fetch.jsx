@@ -3,12 +3,10 @@ import { io } from "socket.io-client"
 
 function Fetch() {
     const [socketInstance, setSocketInstance] = useState("");
-    const [IMU, setIMU] = useState([]);
-    const [highG, setHighG] = useState([]);
-    const [lowG, setLowG] = useState([]);
-    const [gyro, setGyro] = useState([]);
     const [baro, setBaro] = useState([]);
-    const [mag, setMag] = useState([]);
+    const [gps, setGPS] = useState([]);
+    const [accel, setAccel] = useState([]);
+    const [gyro, setGyro] = useState([]);
 
     useEffect(() => {
         const socket = io("localhost:9999/", {
@@ -33,46 +31,32 @@ function Fetch() {
             console.log("Reconnected!");
         })
 
-        socket.on("send_data_IMU", (data) => {
-            console.log(data);
-            console.log("Received data!");
-            setIMU(IMU => [...IMU, ...data.data, 0]);
-            setIMU(IMU => IMU.slice(-6, -1));
-        });
-
-        socket.on("send_data_HIGH_G_ACCEL", (data) => {
-            console.log(data);
-            console.log("Received data!");
-            setHighG(highG => [...highG, ...data.data, 0]);
-            setHighG(highG => highG.slice(-6, -1));
-        });
-
-        socket.on("send_data_LOW_G_ACCEL", (data) => {
-            console.log(data);
-            console.log("Received data!");
-            setLowG(lowG => [...lowG, ...data.data, 0]);
-            setLowG(lowG => lowG.slice(-6, -1));
-        });
-
-        socket.on("send_data_GYROSCOPE", (data) => {
-            console.log(data);
-            console.log("Received data!");
-            setGyro(gyro => [...gyro, ...data.data, 0]);
-            setGyro(gyro => gyro.slice(-6, -1));
-        });
-
-        socket.on("send_data_BAROMETER", (data) => {
+        socket.on("send_data_BARO", (data) => {
             console.log(data);
             console.log("Received data!");
             setBaro(baro => [...baro, ...data.data, 0]);
             setBaro(baro => baro.slice(-6, -1));
         });
 
-        socket.on("send_data_MAGNETOMETER", (data) => {
+        socket.on("send_data_GPS", (data) => {
             console.log(data);
             console.log("Received data!");
-            setMag(mag => [...mag, ...data.data, 0]);
-            setMag(mag => mag.slice(-6, -1));
+            setGPS(gps => [...gps, ...data.data, 0]);
+            setGPS(gps => gps.slice(-6, -1));
+        });
+
+        socket.on("send_data_ACCEL", (data) => {
+            console.log(data);
+            console.log("Received data!");
+            setAccel(accel => [...accel, ...data.data, 0]);
+            setAccel(accel => accel.slice(-6, -1));
+        });
+
+        socket.on("send_data_GYRO", (data) => {
+            console.log(data);
+            console.log("Received data!");
+            setGyro(gyro => [...gyro, ...data.data, 0]);
+            setGyro(gyro => gyro.slice(-6, -1));
         });
 
         /*
@@ -106,27 +90,19 @@ function Fetch() {
     return (
         <div>
             <h1>Fetch Test</h1>
-            {IMU && <p>
-            IMU:
+            {gps && <p>
+            GPS:
             <ol>
-                {IMU.map((IMU, i) => (
-                    <li key={i}>{IMU}</li>
+                {gps.map((gps, i) => (
+                    <li key={i}>{gps}</li>
                 ))}
             </ol>
             </p>}
-            {highG && <p>
-            HIGH G:
+            {accel && <p>
+            ACCEL:
             <ol>
-                {highG.map((highG, i) => (
-                    <li key={i}>{highG}</li>
-                ))}
-            </ol>
-            </p>}
-            {lowG && <p>
-            LOW G:
-            <ol>
-                {lowG.map((lowG, i) => (
-                    <li key={i}>{lowG}</li>
+                {accel.map((accel, i) => (
+                    <li key={i}>{accel}</li>
                 ))}
             </ol>
             </p>}
@@ -143,14 +119,6 @@ function Fetch() {
             <ol>
                 {baro.map((baro, i) => (
                     <li key={i}>{baro}</li>
-                ))}
-            </ol>
-            </p>}
-            {mag && <p>
-            MAGNETOMETER:
-            <ol>
-                {mag.map((mag, i) => (
-                    <li key={i}>{mag}</li>
                 ))}
             </ol>
             </p>}
