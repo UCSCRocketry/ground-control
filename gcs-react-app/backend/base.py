@@ -7,7 +7,6 @@ from flask_socketio import SocketIO
 from threading import Lock, Event
 from Serialport import MockSerialport
 from serial2num_PORT import serial2num
-
 from generate_data import generate
 
 api = Flask(__name__)
@@ -21,12 +20,10 @@ thread_lock = Lock()
 thread_update = None
 
 ser = None
-state = {"IMU" : [],
-         "HIGH_G_ACCEL" : [],
-         "LOW_G_ACCEL" : [],
-         "GYROSCOPE" : [],
-         "BAROMETER" : [],
-         "MAGNETOMETER" : []}
+state = {"BARO": [[], []],
+         "GPS": [[], []],
+         "ACCEL": [[], []],
+         "GYRO": [[], []]}
 
 queue = []
 connected_users = 0
@@ -59,14 +56,18 @@ def send_data(event):
                 print('Sending data...')
                 with api.test_request_context('/'):
                     packet = queue.pop()
-                    state[packet[0]].extend(packet[2])
-                    state[packet[0]][-5:]
+                    print(f'PACKET: {packet}')
+                    state[packet[0]][0].extend(packet[3])
+                    state[packet[0]][0][-5:]
+                    state[packet[0]][1].extend([packet[1] for x in range(packet[2])])
+                    state[packet[0]][1][-5:]
                     print(packet) 
                     socketio.emit(f'send_data_{packet[0]}',
                                 {'label': 'Server generated event', 
                                 'name': packet[0],
-                                'num': packet[1],
-                                'data': packet[2],
+                                'time': packet[1],
+                                'num': packet[2],
+                                'data': packet[3],
                                 'count': count})
     finally:
         event.clear()
@@ -78,8 +79,9 @@ def send_state():
         socketio.emit(f'send_data_{s}',
                       {'label': 'Server generated event',
                        'name': s,
-                       'num': len(state[s]),
-                       'data': state[s]})
+                       'time': state[s][1],
+                       'num': len(state[s][0]),
+                       'data': state[s][0]})
 
 # inits threads on first connect and maintains connected_users
 @socketio.on("connect")
