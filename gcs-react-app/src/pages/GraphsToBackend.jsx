@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { io } from "socket.io-client"
-import Gauge from "./../components/Gauge";
+import Gauge from "../components/Gauge";
 
 
 //Gauge accepts ({ value, min, max, title }) => {
 // like this:
-//               Gauge value={75} min={0} max={100} title="Tester Guage Graph"
+//               Gauge 
+                    // value={75} 
+                    // min={0} 
+                    // max={100} 
+                    // title="Tester Guage Graph"
 
 
 function GraphsToBackend() {
-    const [socketInstance, setSocketInstance] = useState("");
-    const [IMU, setIMU] = useState([]);
+    const [IMU, setIMU] = useState([]); //initilize values (to []) for Gauge component 
 
     useEffect(() => {
         const socket = io("localhost:9999/", {
@@ -53,40 +56,27 @@ function GraphsToBackend() {
         }
         
     }, []);
+    
+    // OLD maxVal LOGIC
+    // const maxVal = IMU < 100 ? 100 : IMU + maxVal + IMU*1/8
+
+    // once the IMU value exceeds 100, then dynamically update the max value to be 100 or higher, 
+    // dont ever decrease the max val for scope of relativity
+    const latestVal = IMU[IMU.length - 1] || 0;
+    const [maxVal, setMaxVal] = useState(100);
+    if (latestVal > maxVal) {
+        const increments = Math.ceil((latestVal - maxVal) / 100);
+        setMaxVal(prev => prev + increments * 100);
+    }
 
     return (
         <div>
-            <h1>IMU Test</h1>
-            {IMU && <p>
-            IMU:
-            
-            {/* create base line empty component */}
-            <ol>
-                return (
-                        <div>
-                        <Gauge value={0} min={0} max={100} title="Tester Guage Graph" />
-                        </div>
-                        );
-            </ol>
-
-
-            {/* pass updating values from backend into gauge */}
-            <ol>                
-                {IMU.map((value, i) => {
-                    
-                    //if value < 100 then set maxVal to 100 otherwise add 100 to it if its over 100
-                    const maxVal = value < 100 ? 100 : value + 100
-                    
-                    return (
-                    <div>
-                    <Gauge value={value} min={0} max={maxVal} title="Tester Guage Graph" />
-                    </div>
-                    );
-                })}
-            </ol>
-
-
-            </p>}
+            <Gauge
+            value={latestVal}
+            min={0}
+            max={maxVal}
+            title="IMU Data"
+        />
         </div>
     );
 }

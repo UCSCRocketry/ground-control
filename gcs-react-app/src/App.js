@@ -6,7 +6,6 @@ import Login from "./pages/Login"
 import Fetch from "./pages/Fetch";
 import Launch from "./pages/LaunchPage";
 import NavBar from "./components/NavBar";
-import Graphs from "./pages/Graphs";
 import Chart from "./pages/Chart";
 import "./Global.css";
 import GraphsToBackend from "./pages/GraphsToBackend";
@@ -24,7 +23,6 @@ function App() {
         <Route path="/fetch" element={<Fetch />} />
         <Route path="/chart" element={<Chart />} />
         <Route path="/launch" element={<Launch />} />
-        <Route path="/graphs" element={<Graphs />} />
         <Route path="/graphsBack" element={<GraphsToBackend />} />
 
 
