@@ -6,9 +6,9 @@ import Login from "./pages/Login"
 import Fetch from "./pages/Fetch";
 import Launch from "./pages/LaunchPage";
 import NavBar from "./components/NavBar";
-import Chart from "./pages/Chart";
+import Chart from "./pages/TEST_Chart";
 import "./Global.css";
-import GraphsToBackend from "./pages/GraphsToBackend";
+import GraphsToBackend from "./pages/TEST_GraphsToBackend";
 
 function App() {
   return (

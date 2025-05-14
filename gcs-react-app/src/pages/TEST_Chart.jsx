@@ -1,5 +1,5 @@
 import React from 'react';
-import CustomLineGraph from "./../components/CustomLineGraph";
+import CustomLineGraph from "../components/CustomLineGraph";
 
 
 const generateData = () =>
