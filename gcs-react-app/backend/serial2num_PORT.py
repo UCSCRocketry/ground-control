@@ -9,11 +9,26 @@ Gyroscope:      ro  0x726F
 """
 
 SENSORS = {
-        0x6261: "BARO",
-        0x6770: "GPS",
-        0x6163: "ACCEL",
-        0x726F: "GYRO"
-    }
+    0x6261: "BARO",
+    0x6770: "GPS",
+    0x6163: "ACCEL",
+    0x726F: "GYRO"
+}
+
+BARO_LEN = 1
+GPS_LEN = 2
+ACCEL_LEN = 4
+GYRO_LEN = 2
+
+PAYLOAD = {
+    0x6261: BARO_LEN,
+    0x6770: GPS_LEN,
+    0x6163: ACCEL_LEN,
+    0x726F: GYRO_LEN
+}
+
+CRC_DIVISOR = [1,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1] #0b10001000000100001 (17 bits)
+CRC_ZERO = [0 for i in range(16)] #0b0000000000000000 (16 bits)
 
 def serial2num(ser):
 
@@ -39,7 +54,7 @@ def serial2num(ser):
             break
 
         # read number of measurement values
-        num_measurements = ser.read(1)
+        num_measurements = PAYLOAD.get(int.from_bytes(sensor_id, 'big'), None)
         if not num_measurements:
             break
         
@@ -47,9 +62,9 @@ def serial2num(ser):
         # the data will be read in big-endian 
         # the int method below converts bytes into an integer
         # multiplied by two since the each data measurement is represented by two bytes
-        data_length = int.from_bytes(num_measurements, 'big') * 2
-        data_values = ser.read(data_length) # reads the specified bytes by data_length from the file
-        if len(data_values) < data_length: # checks if bytes being read is less than the expected data length
+        #data_length = int.from_bytes(num_measurements, 'big') * 2
+        data_values = ser.read(num_measurements * 2) # reads the specified bytes by data_length from the file
+        if len(data_values) < (num_measurements * 2): # checks if bytes being read is less than the expected data length
             break
         
         #print(f's:{int.from_bytes(sensor_id)}, n:{int.from_bytes(num_measurements)}, d:{data_values}')
@@ -68,9 +83,9 @@ def serial2num(ser):
         if endint != 0x0D0A:
             break
 
-        data_packet = sensor_id + timestamp + num_measurements + data_values + crc # creates a full packet of all the data read
+        data_packet = sensor_id + timestamp + data_values + crc # creates a full packet of all the data read
 
-        read_data = process_packet(data_packet) #puts the packet through error correction
+        read_data = process_packet(data_packet, num_measurements) #puts the packet through error correction
         if read_data != None:
             processed_data.append(read_data)
     
@@ -86,43 +101,39 @@ def binary_to_number(binary, n):
     # Dealing with big-endian data representation usually used from sensors 
 
     decimal = 0
-    for i in range(n - 1, -1, -1):
-        decimal += (binary[i] << (8 * i))
+    for i in range(n):
+        decimal += (binary[i] << (8 * (n - i - 1)))
+        #print(f'D: {i}, {binary[i]}, {decimal}')
     return decimal
 
 
-def process_sensor_data(data):
+def process_sensor_data(data, num_measurements):
     # The sensor ID helps know which sensor the data is coming from and tags each data point
     # Expects the input data to be a sequence of bytes
     # Let's say the first byte is the sensor ID to identify the specific sensor (which is in hexadecimal)
     sensor_id = int.from_bytes(data[0:2], 'big') 
     sensor_type = SENSORS.get(sensor_id, "unknown sensor") # Use the sensor ID to get the sensor type from dictionary
     timestamp = int.from_bytes(data[2:6])
-    num_measurements = data[6] # Second byte indicates the number of measurement values
 
     all_values = []
-    if num_measurements == 1: # for single values
-        measurement = binary_to_number(data[7:9], 2) # the next two bytes will be values that are reported from the sensor
+    for i in range(num_measurements):
+        starting_index = 6 + (i * 2)
+        measurement = binary_to_number(data[starting_index:starting_index + 2], 2) # gives the data from the starting index
         all_values.append(measurement)
-    else:
-        for i in range(num_measurements):
-            starting_index = 7 + (i * 2)
-            measurement = binary_to_number(data[starting_index:starting_index + 2], 2) # gives the data from the starting index
-            all_values.append(measurement)
 
     return sensor_type, timestamp, num_measurements, all_values
 
 
-def process_packet(data):
-    if len(data) < 11: # requires the sensor id, timestamp, number of measurements and crc
+def process_packet(data, num_measurements):
+    print(len(data))
+    if len(data) < 10: # requires the sensor id, timestamp, number of measurements and crc
         return None
     
     sensor_id = int.from_bytes(data[0:2]) # checks if the sensor_id is in the SENSORS dictionary
     if sensor_id not in SENSORS:
         return None
     
-    num_measurements = data[6]
-    if len(data) < (9 + num_measurements * 2): # Check if the data is enough
+    if len(data) < (8 + num_measurements * 2): # Check if the data is enough
         return None
     
     if not crc_check(data):
@@ -130,6 +141,8 @@ def process_packet(data):
         return None
     
     else:
+        return process_sensor_data(data, num_measurements) # returns the processed_sensor_data if passes the error checks
+
 def crc_encode(data):
     bitarr = bytes_to_array(data)
     bitarr.extend(CRC_ZERO)
