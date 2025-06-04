@@ -125,10 +125,59 @@ def process_packet(data):
     if len(data) < (9 + num_measurements * 2): # Check if the data is enough
         return None
     
-    crc = data[-2:]
-    if crc != b'*+':
+    if not crc_check(data):
         print("CRC ERROR!")
         return None
     
     else:
-        return process_sensor_data(data) # returns the processed_sensor_data if passes the error checks
+def crc_encode(data):
+    bitarr = bytes_to_array(data)
+    bitarr.extend(CRC_ZERO)
+    #print(f'BEFORE ENCODE: {data}')
+    offset = 0
+    while (offset < len(bitarr) - 17):
+        while (bitarr[offset] != 1 and offset < len(bitarr) - 17):
+            offset += 1
+        for j in range(17):
+            bitarr[j + offset] = bitarr[j + offset] ^ CRC_DIVISOR[j]
+        offset += 1
+    #print(f'AFTER ENCODE: {datarr}')
+
+    i = 0
+    decimal_1 = 0
+    decimal_2 = 0
+    for j in range(7, -1, -1):
+        decimal_1 += bitarr[-16 + i] * (2 ** j)
+        decimal_2 += bitarr[-8 + i] * (2 ** j)
+        i += 1
+
+    crc = bytes()
+    crc += decimal_1.to_bytes(1, 'big')
+    crc += decimal_2.to_bytes(1, 'big')
+    #print(f'AFTER ENCODE: {bytes_to_array(data)}')
+    return crc
+
+def crc_check(data):
+    bitarr = bytes_to_array(data)
+    #print(f'BEFORE CHECK: {bitarr}')
+    offset = 0
+    while (offset < len(bitarr) - 17):
+        while (bitarr[offset] != 1 and offset < len(bitarr) - 17):
+            offset += 1
+        for j in range(17):
+            bitarr[j + offset] = bitarr[j + offset] ^ CRC_DIVISOR[j]
+        offset += 1
+    #print(f'AFTER CHECK: {bitarr}')
+    if (bitarr[-16::] == CRC_ZERO):
+        return True
+    
+    return False
+
+def bytes_to_array(data):
+    arr = []
+    for byte in data:
+        for i in range(7, -1, -1):
+            arr.append(1 if (byte & (1 << i)) != 0 else 0)
+        #arr.append("BYTE END")
+    return arr 
+    
