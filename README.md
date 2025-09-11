@@ -3,13 +3,15 @@
 > * Currently: Requests and downloads CSV file from backend 
 > * To do: 
 >   * develop data table page to contain data table  
->   * build out backend endpoint with functionality of generating a csv file 
 >   * format and styling 
 > * Working files: 
 >   * `ExportButton.jsx` -  export button component 
 >   * `ExportButton.css` - styling of the button
 >   * `DataTable.jsx` - page where component will live
 >   * `App.js` - contains the routing for the dataTable page
+
+> Note: need to build out the backend endpoint (with functionality of generating a csv file) for the Export Button to send GET request to, but that should be done on another branch
+
 
 ---
 # Ground Control
