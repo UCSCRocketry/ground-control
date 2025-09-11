@@ -1,4 +1,9 @@
-# ground-control
+> ### `database_design` branch
+> * This branch is for development of the database design. Read commit history for more information  
+> * Working files: `create_tables.sql`
+
+---
+# Ground Control
 UC Santa Cruz Rocket Team's ground control system
 
 This project aims to create a ground control system that logs data collected during launch and is able to display real time data visualization and tracking of the rocket.
