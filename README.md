@@ -1,4 +1,18 @@
-# ground-control
+> ### 🚧 `exportButton` branch
+> * This branch is for development of the export button functionality. 
+> * Currently: Requests and downloads CSV file from backend 
+> * To do: 
+>   * develop data table page to contain data table  
+>   * build out backend endpoint with functionality of generating a csv file 
+>   * format and styling 
+> * Working files: 
+>   * `ExportButton.jsx` -  export button component 
+>   * `ExportButton.css` - styling of the button
+>   * `DataTable.jsx` - page where component will live
+>   * `App.js` - contains the routing for the dataTable page
+
+---
+# Ground Control
 UC Santa Cruz Rocket Team's ground control system
 
 This project aims to create a ground control system that logs data collected during launch and is able to display real time data visualization and tracking of the rocket.
