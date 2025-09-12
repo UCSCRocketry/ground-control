@@ -1,4 +1,28 @@
-# ground-control
+> ### 🚧 `newGraphPage` branch
+> * This branch is for development of the graph page that will display real-time data during launch. It will include the following graphs:
+>   * altitude
+>   * velocity
+>   * acceleration
+>   * angular rates:
+>       * roll
+>       * pitch
+>       * yaw
+>   * velocity speedomter
+>   * altitude speedometer
+>   * acceleration speedometer
+>   * battery life value
+>   * time lapsed value
+> * To do: 
+>   * create the front end layout with these graphs
+>   * connect routing and add click functionality to the green "New Page" button
+>   * get working with backend data 
+> * Working files: 
+>   * `App.js` - contains the routing for the dataTable page
+
+> Note: only altitude and velocity need backend connection for MVP
+
+
+# Ground Control
 UC Santa Cruz Rocket Team's ground control system
 
 This project aims to create a ground control system that logs data collected during launch and is able to display real time data visualization and tracking of the rocket.
