@@ -6,9 +6,9 @@ import launchesData from "../launches.json";
 import "../styles/Home.css";
 
 export default function Home() {
-    const [launches, setLaunches] = useState([]);
+    const [launches, setLaunches] = useState([]); //state to store list of launches to display on home page
     useEffect(() => {
-        setLaunches(launchesData.launches);
+        setLaunches(launchesData.launches); //json file of launches 
     }, []);
 
     
