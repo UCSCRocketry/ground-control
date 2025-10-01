@@ -44,13 +44,7 @@ If you want to deactivate the environment, simply type into the terminal:
 
 ### 4. Install flask and its environment (make sure you are doing this with the virtual python environment active):
 
-    pip install flask
-    pip install python-dotenv
-    pip install flask-cors          // this library allows us to route across domains (frontend <--> backend)
-    
-If you get an error about permissions when running pip (such as WinError2), try adding "--user" to the command like so:
-
-    pip install flask --user
+    pip install -r requirements.txt
 
 Note that the flask environment variables are stored in the `.flaskenv` file. The main flask app is currently set to `base.py`.
 
