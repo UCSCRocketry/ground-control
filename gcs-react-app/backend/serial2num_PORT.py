@@ -97,10 +97,17 @@ def process_packet(
                 packetdict['payload'] = {'X': int.from_bytes(packet[14:18]),
                                          'Y': int.from_bytes(packet[19:23]),
                                          'Z': int.from_bytes(packet[24:28])}
+                
             case 'ba':
-                packetdict['payload'] = int.from_bytes(packet[11:26])
-                packetdict['payload'] += int.from_bytes(packet[26])
-                packetdict['payload'] *= 10**(int.from_bytes(packet[27]))
+                bindata = int.from_bytes(packet[11:28])
+                exp = bindata % 10
+                bindata -= exp
+                fp = bindata % 100
+                bindata -= fp
+                digit = bindata
+
+                packetdict['payload'] = (digit + (fp/10)) * (10**exp)
+
             case 'al' | 'ah' | _:
                 packetdict['payload'] = int.from_bytes(packet[11:28])
 
