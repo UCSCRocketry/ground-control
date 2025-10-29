@@ -12,7 +12,7 @@
 >   - altitude speedometer
 >   - acceleration speedometer
 >   - battery life value
->   - time lapsed value
+>   - time lapsed value.
 > - To do:
 >   - create the front end layout with these graphs
 >   - connect routing and add click functionality to the green "New Page" button
@@ -20,6 +20,7 @@
 > - Working files:
 >   - `App.js` - contains the routing for the dataTable page
 >   - BackButton.jsx functionality fixed
+>   - Test
 
 > Note: only altitude and velocity need backend connection for MVP
 
