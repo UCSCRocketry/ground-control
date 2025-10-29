@@ -20,6 +20,7 @@ def get_packets(
         if packet == None:
             break
         elif packet.get('error') != None:
+            print(f'get_packets(): Error: {packet}')
             continue
 
         packetlist.append(packet)
@@ -76,6 +77,7 @@ def serial2json(
         
     except Exception as e:
         print(f'serial2json(): Encountered exception: {e}')
+        return {'error': {e}}
 
 def process_packet(
     packet: bytes
