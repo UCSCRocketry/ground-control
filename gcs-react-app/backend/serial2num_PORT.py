@@ -118,7 +118,7 @@ def process_packet(
         
     except Exception as e:
         print(f'Encountered exception: {e}')
-        return {'error': 'Exception: ' + e}
+        return {'error': f'Exception: {e}'}
 
 def crc_check(
     data: bytes
