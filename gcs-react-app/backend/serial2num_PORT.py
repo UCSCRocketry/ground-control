@@ -198,7 +198,8 @@ def test():
     print((dummy_packet))
     ser = MockSerialport()
     ser.write(dummy_packet)
-    serial2json(ser)
+    res = serial2json(ser)
+    print(res)
     ser.close()
 
 if __name__ == '__main__':
