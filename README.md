@@ -20,7 +20,6 @@
 > - Working files:
 >   - `App.js` - contains the routing for the dataTable page
 >   - BackButton.jsx functionality fixed
->   - Test
 
 > Note: only altitude and velocity need backend connection for MVP
 
