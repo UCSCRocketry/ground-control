@@ -11,8 +11,6 @@ export default function Home() {
         setLaunches(launchesData.launches); //json file of launches 
     }, []);
 
-    
-
     const formatTimestamp = (timestamp) => {
         const date = new Date(timestamp);
         const hours = date.getHours();

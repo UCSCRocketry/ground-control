@@ -1,0 +1,14 @@
+.custom-line-graph {
+    height: 15rem;
+    width: 100%;
+    border: 1px solid #C4C4C4;
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.custom-line-graph:hover {
+    transform: translateY(-4px);
+    transition: transform 0.2s;
+}

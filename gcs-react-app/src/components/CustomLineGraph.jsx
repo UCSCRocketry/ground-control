@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler } from 'chart.js';
+import { useNavigate } from 'react-router-dom';
+import '../styles/CustomLineGraph.css';
+import starClusterImage from '../assets/starCluster.jpg';
 
 // Register necessary chart.js components and plugins
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
@@ -18,17 +21,33 @@ const plugin = {
 };
 ChartJS.register(plugin);
 
-const graphStyle = {
-  minHeight: '20rem',
-  maxWidth: '1000px',
-  width: '100%',
-  border: '1px solid #C4C4C4',
-  borderRadius: '0.375rem',
-  padding: '0.5rem',
-  marginBottom: '1rem', // Space between charts
-};
 
 const CustomLineGraph = ({ title, data, label = 'Home' }) => {
+  const navigate = useNavigate();
+  // const [backgroundPattern, setBackgroundPattern] = useState('lightblue');
+  
+  // CHANGE THIS TO THE CORRECT PAGE FOR THE FULL SCREEN GRAPH PAGE
+  const handleClick = () => {
+    navigate(`/launch?id=${1}`); // TODO: replace this with route to full screen graph page
+  };
+
+  // // Create pattern from image
+  // useEffect(() => {
+  //   const img = new Image();
+  //   img.onload = () => {
+  //     const canvas = document.createElement('canvas');
+  //     const ctx = canvas.getContext('2d');
+  //     canvas.width = img.width;
+  //     canvas.height = img.height;
+  //     ctx.drawImage(img, 0, 0);
+      
+  //     // Create pattern
+  //     const pattern = ctx.createPattern(img, 'repeat');
+  //     setBackgroundPattern(pattern);
+  //   };
+  //   img.src = starClusterImage;
+  // }, []);
+
   const options = {
     scales: {
       x: {
@@ -67,7 +86,8 @@ const CustomLineGraph = ({ title, data, label = 'Home' }) => {
         borderColor: 'black',
         pointRadius: 0,
         fill: true,
-        backgroundColor: 'lightblue',
+        // backgroundColor: backgroundPattern,
+        backgroundColor: 'white',
         lineTension: 0.4,
         data,
         borderWidth: 1,
@@ -76,7 +96,7 @@ const CustomLineGraph = ({ title, data, label = 'Home' }) => {
   };
 
   return (
-    <div style={graphStyle}>
+    <div className="custom-line-graph" onClick={handleClick}>
       <Line options={options} data={canvasData} />
     </div>
   );
