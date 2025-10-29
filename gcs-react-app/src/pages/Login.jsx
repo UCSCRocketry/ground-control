@@ -42,7 +42,9 @@ export default function Login() {
           <a href="/">
             <h6 className="forgot-password">Forgot Password?</h6>
           </a>
-          <button type="submit" className="login-button">LOGIN</button>
+          <button type="submit" className="login-button">
+            LOGIN
+          </button>
         </form>
       </div>
     </div>
