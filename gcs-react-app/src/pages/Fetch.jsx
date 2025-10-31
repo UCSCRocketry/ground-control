@@ -4,8 +4,8 @@ import { io } from "socket.io-client"
 function Fetch() {
     const [socketInstance, setSocketInstance] = useState("");
     const [baro, setBaro] = useState([]);
-    const [gps, setGPS] = useState([]);
-    const [accel, setAccel] = useState([]);
+    const [accLo, setAccLo] = useState([]);
+    const [accHi, setAccHi] = useState([]);
     const [gyro, setGyro] = useState([]);
 
     useEffect(() => {
@@ -31,32 +31,33 @@ function Fetch() {
             console.log("Reconnected!");
         })
 
-        socket.on("send_data_BARO", (data) => {
+        socket.on("send_data_ba", (data) => {
             console.log(data);
             console.log("Received data!");
-            setBaro(baro => [...baro, ...data.data, 0]);
-            setBaro(baro => baro.slice(-6, -1));
+            setBaro(baro => [...baro, data.payload, 0]);
+            setBaro(baro => baro.slice(-11, -1));
         });
 
-        socket.on("send_data_GPS", (data) => {
+        socket.on("send_data_al", (data) => {
             console.log(data);
             console.log("Received data!");
-            setGPS(gps => [...gps, ...data.data, 0]);
-            setGPS(gps => gps.slice(-6, -1));
+            setAccLo(accLo => [...accLo, data.payload, 0]);
+            setAccLo(accLo => accLo.slice(-11, -1));
         });
 
-        socket.on("send_data_ACCEL", (data) => {
+        socket.on("send_data_ah", (data) => {
             console.log(data);
             console.log("Received data!");
-            setAccel(accel => [...accel, ...data.data, 0]);
-            setAccel(accel => accel.slice(-6, -1));
+            setAccHi(accHi => [...accHi, data.payload, 0]);
+            setAccHi(accHi => accHi.slice(-11, -1));
         });
+        
 
-        socket.on("send_data_GYRO", (data) => {
+        socket.on("send_data_ro", (data) => {
             console.log(data);
             console.log("Received data!");
-            setGyro(gyro => [...gyro, ...data.data, 0]);
-            setGyro(gyro => gyro.slice(-6, -1));
+            setGyro(gyro => [...gyro, [data.payload.X, data.payload.Y, data.payload.Z], 0]);
+            setGyro(gyro => gyro.slice(-11, -1));
         });
 
         /*
@@ -90,19 +91,19 @@ function Fetch() {
     return (
         <div>
             <h1>Fetch Test</h1>
-            {gps && <p>
-            GPS:
+            {accHi && <p>
+            ACCEL HIGH:
             <ol>
-                {gps.map((gps, i) => (
-                    <li key={i}>{gps}</li>
+                {accHi.map((accHi, i) => (
+                    <li key={i}>{accHi}</li>
                 ))}
             </ol>
             </p>}
-            {accel && <p>
-            ACCEL:
+            {accLo && <p>
+            ACCEL LOW:
             <ol>
-                {accel.map((accel, i) => (
-                    <li key={i}>{accel}</li>
+                {accLo.map((accLo, i) => (
+                    <li key={i}>{accLo}</li>
                 ))}
             </ol>
             </p>}
@@ -110,7 +111,7 @@ function Fetch() {
             GYROSCOPE:
             <ol>
                 {gyro.map((gyro, i) => (
-                    <li key={i}>{gyro}</li>
+                    <li key={i}>{gyro[0]}, {gyro[1]}, {gyro[2]}</li>
                 ))}
             </ol>
             </p>}
