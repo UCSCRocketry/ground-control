@@ -16,35 +16,3 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
-
-#nav {
-  border-bottom: 1px solid lightgray;
-  display: flex;
-  justify-content: center;
-  padding-top: 8px;
-  padding-bottom: 2px;
-}
-
-#nav img {
-  height: 4rem;
-}
-
-main {
-  padding: 3rem 5rem;
-}
-
-#launch {
-  background-color: red;
-  width: 356px;
-  height: 356px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  
-}
-
-.launches-container {
-  margin-top: 2rem;
-  display: flex;
-  justify-content: space-between;
-}

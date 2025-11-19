@@ -7,7 +7,6 @@ export default function About() {
             <h1>About</h1>
             <p>Welcome to the about page!</p>
             <BackButton />
-
         </div>
     )
 }
