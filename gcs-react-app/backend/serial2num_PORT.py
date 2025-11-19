@@ -1,111 +1,247 @@
-import struct
-from Serialport import MockSerialport
-"""
-Processes binary serial data and converts it to a readable format using hexidecimal
-(What I want to add: checksum,  more/better error handling, unit conversion, maybe calculate the difference for real time, also error logging)
-(assume that a packet may look like: Header, Timestamp, Data1, Data2 ... Checksum)
+from Serialport import Serialport, MockSerialport
 
-Expected format:
-- 1 byte: Sensor's starting key (in hexadeciaml)
-- 1 byte(s): Number of data bytes following
-- N bytes: Data values below
+#START_BYTES = ('!', '"', '#', '$')
+START_BYTE_MIN = 0x21.to_bytes(length=1)
+START_BYTE_MAX = 0x24.to_bytes(length=1)
+END_BYTES = 0x0D0A.to_bytes(length=2)
+SENSOR_IDS = ('ba', 'gp', 'al', 'ah', 'ro', 'sc', 'im')
 
-Sensors (in hexidecimal):
-0xA1: IMU (6 bytes - 3 x 16-bit integer)
-0xA2: High-G accelerometer (2 bytes - 1 x 16-bit integer)
-0xA3: Low-G accelerometer (2 bytes - 1 x 16-bit integer)
-0xA4: Gyroscope (6 bytes - 3 x 16-bit integers for x,y,z)
-0xA5: Barometer (2 bytes - 1 x 16-bit integer)
-0xA6: Magnetometer (6 bytes - 3 x 16-bit integers for x,y,z)
-"""
+def get_packets(
+    ser: Serialport | MockSerialport,
+    max_packets: int = -1
+) -> list[dict]:
+    """Get `max_packets` packets waiting in `ser`.
 
-SENSORS = {
-        0xA1: "IMU",
-        0xA2: "HIGH_G_ACCEL",
-        0xA3: "LOW_G_ACCEL",
-        0xA4: "GYROSCOPE",
-        0xA5: "BAROMETER",
-        0xA6: "MAGNETOMETER"
-    }   
+    If left unspecified, `max_packets` defaults to -1 ("as many as possible").
 
-def serial2num(ser):
+    Args:
+        ser: The open Serialport object.
+        max_packets: The number of packets to get.
+    Returns:
+        packetlist: The list of read packets, where each packet is a dict.
+    """
+    packetlist = []
+    n = 0
+    while n > max_packets:
+        packet = serial2json(ser)
 
-    processed_data = []    
-    
-    while True:
-        # Reads for the sensor ID in the first byte
-        sensor_id = ser.read(1)
-        if not sensor_id:
+        if packet == None:
             break
+        elif packet.get('error') != None:
+            print(f'get_packets(): Error: {packet}')
+            continue
+
+        packetlist.append(packet)
+        n += 1
+    
+    return packetlist
+
+def serial2json(
+    ser: Serialport | MockSerialport
+) -> dict | None:
+    """Convert a serial packet into dictionary (json) form, if the packet exists.
+
+    Invalid packets are converted into a dictionary containing the key "error" and
+    a description.
+
+    Args:
+        ser: The open Serialport object.
+    Returns:
+        packetdict: A dictionary representation of the packet, or None.
+    """
+    try:
+        start_byte = ser.read(1)
+        while start_byte != None and ((start_byte < START_BYTE_MIN) or (start_byte > START_BYTE_MAX)):
+            print('serial2json: Start byte not found.')
+            start_byte = ser.read(1)
         
-        # read number of measurement values
-        num_measurements = ser.read(1)
-        if not num_measurements:
-            break
+        if start_byte == None:
+            return None
 
-        # Reading the actual data
-        # the data will be read in big-endian 
-        # the int method below converts bytes into an integer
-        # multiplied by two since the each data measurement is represented by two bytes
-        data_length = int.from_bytes(num_measurements, 'big') * 2
-        data_values = ser.read(data_length) # reads the specified bytes by data_length from the file
-        if len(data_values) < data_length: # checks if bytes being read is less than the expected data length
-            break
+        packet = start_byte + ser.read(31)
+
+        # TODO: handle reading bytes while packet is being transmitted
+        if not packet or len(packet) != 32:
+            print('serial2json: Received bad packet.')
+            return {'error': 'Received bad packet'}
         
-        print(f's:{int.from_bytes(sensor_id)}, n:{int.from_bytes(num_measurements)}, d:{data_values}')
-        data_packet = sensor_id + num_measurements + data_values # creates a full packet of all the data read
+        res = crc_check(packet[1:30])
+        if not res:
+            print('serial2json: Packet failed CRC check.')
+            return {'error': 'Packet failed CRC check'}
+        
+        packetdict = process_packet(packet)
+        if packetdict.get('error') != None:
+            return packetdict
 
-        read_data = process_packet(data_packet) #puts the packet through error correction
-        if read_data != None:
-            processed_data.append(read_data)
+        match packetdict['start']:
+            case '$':
+                # response expected
+                msg = 0x220D0A.to_bytes(length=3)
+                ser.write(msg)
+            case '#':
+                # discard message
+                print(packetdict)
+                packetdict = {'exit': 'Discarded message'}
+            case '"' | '!':
+                # acknowledgement | no response expected
+                pass
+        
+        packetdict.pop('start')
+
+        return packetdict
+        
+    except Exception as e:
+        print(f'serial2json(): Encountered exception: {e}')
+        return {'error': {e}}
+
+def process_packet(
+    packet: bytes
+) -> dict:
+    """Process a byte packet into dictionary (json) form.
+
+    Returns a dictionary containing the key "error" and a
+    corresponding description if an exception occurs during
+    processing.
+
+    Args:
+        packet: The packet (in bytes) to be processed.
+    Returns:
+        packetdict: The processed packet.
+    """
+    packetdict = dict()
+    try:
+        packetdict['start'] = packet[0:1].decode('ascii')
+        packetdict['seqid'] = int.from_bytes(packet[1:5])
+        packetdict['id'] = packet[5:7].decode('ascii')
+        if packetdict['id'] not in SENSOR_IDS:
+            raise ValueError('Invalid sensor ID')
+        packetdict['timestamp'] = int.from_bytes(packet[7:11])
+
+        # parse packet payload (depends on sensor id)
+        match packetdict['id']:
+            case 'ro':
+                packetdict['payload'] = {'X': int.from_bytes(packet[14:18]),
+                                         'Y': int.from_bytes(packet[19:23]),
+                                         'Z': int.from_bytes(packet[24:28])}
+                
+            case 'ba':
+                bindata = int.from_bytes(packet[11:28])
+                exp = bindata % 10
+                bindata -= exp
+                fp = bindata % 100
+                bindata -= fp
+                digit = bindata
+
+                packetdict['payload'] = (digit + (fp/10)) * (10**exp)
+
+            case 'al' | 'ah' | _:
+                packetdict['payload'] = int.from_bytes(packet[11:28])
+
+        if packet[30:32] != END_BYTES:
+            raise ValueError('Missing end bytes')
+        
+        return packetdict
+        
+    except Exception as e:
+        print(f'Encountered exception: {e}')
+        return {'error': f'Exception: {e}'}
+
+def crc_check(
+    data: bytes
+) -> bool:
+    """Check if a sequence of bytes is CRC-16 valid.
+
+    Args:
+        data: A bytes object.
+    Returns:
+        out: True if CRC-16 valid, False otherwise.
+    """
+    bitarr = bytes_to_bitarr(data)
+    #print(f'BEFORE CHECK: {bitarr}')
+    crc_divisor = [1,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1]
+    offset = 0
+    while (offset < len(bitarr) - 17):
+        while (bitarr[offset] != 1 and offset < len(bitarr) - 17):
+            offset += 1
+        for j in range(17):
+            bitarr[j + offset] = bitarr[j + offset] ^ crc_divisor[j]
+        offset += 1
+    #print(f'AFTER CHECK: {bitarr}')
+    if (bitarr[-16::] == [0 for i in range(16)]):
+        return True
     
-    return processed_data
+    return False
 
+def bytes_to_bitarr(
+    data: bytes
+) -> list[int]:
+    """Convert a bytes object to a bit array.
 
-def binary_to_number(binary):
-    # Function would convert 2 bytes to an integer (in a form working with raw binary data)
-    # high_byte = holds the larger values as it is "shifted" to the left in binary representation
-    # 16-bit integer:  10110101 01100010
-    #                  High Byte   Low Byte
-    # In this case, the function would shift the bits of a binary sequence to the left into high byte in 16-bit 
-    # Dealing with big-endian data representation usually used from sensors 
+    Uses big endian encoding of bytes.
 
-    decimal = (binary[0] << 8) + binary[1] # High byte + Low byte 
-    return decimal
+    Args:
+        data: A bytes object.
+    Returns:
+        bitarr: A list of bits representing `data`.
+    """
+    bitarr = []
+    for byte in data:
+        for i in range(7, -1, -1):
+            bitarr.append(1 if (byte & (1 << i)) != 0 else 0)
+        #bitarr.append("BYTE END")
+    return bitarr
 
+def crc_encode(
+    data: bytes
+) -> bytes:
+    """Generate the CRC-16 error correction bytes for a given bytes object.
 
-def process_sensor_data(data):
-    # The sensor ID helps know which sensor the data is coming from and tags each data point
-    # Expects the input data to be a sequence of bytes
-    # Let's say the first byte is the sensor ID to identify the specific sensor (which is in hexadecimal)
-    sensor_id = data[0] 
-    sensor_type = SENSORS.get(sensor_id, "unknown sensor") # Use the sensor ID to get the sensor type from dictionary
-    num_measurements = data[1] # Second byte indicates the number of measurement values
+    Args:
+        data: A bytes object.
+    Returns:
+        crc: The CRC error correction bytes for `data`.
+    """
+    bitarr = bytes_to_bitarr(data)
+    crc_divisor = [1,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1]
+    bitarr.extend([0 for i in range(16)])
 
-    all_values = []
-    if num_measurements == 1: # for single values
-        measurement = binary_to_number(data[2:4]) # the next two bytes will be values that are reported from the sensor
-        all_values.append(measurement)
-    else:
-        for i in range(num_measurements):
-            starting_index = 2 + (i * 2)
-            measurement = binary_to_number(data[starting_index:starting_index + 2]) # gives the data from the starting index
-            all_values.append(measurement)
+    offset = 0
+    while (offset < len(bitarr) - 17):
+        while (bitarr[offset] != 1 and offset < len(bitarr) - 17):
+            offset += 1
+        for j in range(17):
+            bitarr[j + offset] = bitarr[j + offset] ^ crc_divisor[j]
+        offset += 1
 
-    return sensor_type, num_measurements, all_values
+    i = 0
+    decimal_1 = 0
+    decimal_2 = 0
+    for j in range(7, -1, -1):
+        decimal_1 += bitarr[-16 + i] * (2 ** j)
+        decimal_2 += bitarr[-8 + i] * (2 ** j)
+        i += 1
 
+    crc = bytes()
+    crc += decimal_1.to_bytes(1, 'big')
+    crc += decimal_2.to_bytes(1, 'big')
+    return crc
 
-def process_packet(data):
-    if len(data) < 3: # requires the sensor id and number of measurements
-        return None
-    
-    sensor_id = data[0] # checks if the sensor_id is in the SENSORS dictionary
-    if sensor_id not in SENSORS:
-        return None
-    
-    num_measurements = data[1]
-    if len(data) < (2 + num_measurements * 2): # Check if the data is enough
-        return None
-    
-    else:
-        return process_sensor_data(data) # returns the processed_sensor_data if passes the error checks
+def test():
+    start = int.to_bytes(0x21)
+    seqid = int.to_bytes(0x00000001, length=4)
+    id = int.to_bytes(0x726F, length=2)
+    timestamp = int.to_bytes(0x00001011, length=4)
+    payload = int.to_bytes(0x00005800000001590000004F6000000352, length=17)
+    crc = crc_encode(seqid+id+timestamp+payload)
+    end = int.to_bytes(0x0D0A, length=2)
+    dummy_packet = start+seqid+id+timestamp+payload+crc+end
+    print((dummy_packet))
+    ser = MockSerialport()
+    ser.write(dummy_packet)
+    res = serial2json(ser)
+    print(res)
+    ser.close()
+
+if __name__ == '__main__':
+    test()

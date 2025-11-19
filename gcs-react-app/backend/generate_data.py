@@ -1,16 +1,48 @@
-from random import randint
+import random
+from serial2num_PORT import crc_encode
 
-SENSORS = [0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6]
+'''
+SENSOR IDs:
+
+BAROMETER:              ba  0x6261
+HIGHG ACCELEROMETER:    ah  0x6168
+LOWG ACCELEROMETER:     al  0x616C
+GYROSCOPE:              ro  0x726F
+
+'''
+
+SENSORS = [0x6261, 0x6168, 0x616C, 0x726F]
+
+timestamp = 0
+seqid = 0
 
 def generate(ser):
-    n = randint(0, 6)
-    rsensor = randint(0, 5)
-    b = randint(1, 3)
+    global timestamp, seqid
+    n = random.choices([0,1,2,3,4,5], weights=[10, 20, 40, 50, 50, 40])[0]
+    timestamp += random.randint(1000, 10000)
     for i in range(n):
-        data = bytes([
-            SENSORS[rsensor],
-            b
-        ])
-        for j in range(b):
-            data += int(randint(0, 512)).to_bytes(2, "big")
-        ser.write(data)
+        seqid += (random.choices([1,2,3], weights=[90, 10, 5])[0])
+        rsensor = random.randint(0, 3)
+        sensorid = SENSORS[rsensor].to_bytes(length=2)
+        timestamp += random.randint(50, 500)
+        if rsensor == 3:    # ro
+            payload = 0x000058.to_bytes(length=3)
+            rX = random.randint(25, 1000).to_bytes(length=4)
+            rY = random.randint(25, 1000).to_bytes(length=4)
+            rZ = random.randint(100, 10000).to_bytes(length=4)
+            payload += rX + 0x59.to_bytes(length=1) + rY + 0x60.to_bytes(length=1) + rZ
+        elif rsensor == 0:  # ba
+            payload = random.randint(111, 999).to_bytes(length=17)
+        else:   # ah, al
+            payload = random.randint(100, 100000).to_bytes(length=17)
+        
+        packet = bytes()
+        packet += seqid.to_bytes(length=4) + sensorid + timestamp.to_bytes(length=4) + payload
+        crc = crc_encode(packet)
+
+        start = 0x21.to_bytes(length=1)
+        end = 0x0D0A.to_bytes(length=2)
+
+        packet = start + packet + crc + end
+        ser.write(packet)
+        # print(f'Writing: seqid: {seqid}, id: {sensorid}, timestamp: {timestamp}, payload: {payload}')
