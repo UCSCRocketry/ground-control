@@ -6,14 +6,14 @@ const BackButton = () => {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate('/login');
+    navigate(-1);
   };
 
   return (
     <div className="button-container">
       <button className="Button" onClick={handleClick}>
         <img classname="arrow-button" src={backArrow} alt="Back" />
-        <h1 className="return-h1">Back</h1>
+        <h1>Back</h1>
       </button>
     </div>
   );

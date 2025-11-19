@@ -1,4 +1,4 @@
-# ground-control
+# Ground Control
 UC Santa Cruz Rocket Team's ground control system.  
 
 This project aims to create a ground control system that logs data collected during launch and is able to display real time data visualization and tracking of the rocket.
@@ -47,7 +47,7 @@ If you want to deactivate the environment, simply type into the terminal:
     pip install flask
     pip install python-dotenv
     pip install flask-cors          // this library allows us to route across domains (frontend <--> backend)
-    
+
 If you get an error about permissions when running pip (such as WinError2), try adding "--user" to the command like so:
 
     pip install flask --user
