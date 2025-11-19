@@ -10,7 +10,15 @@ def get_packets(
     ser: Serialport | MockSerialport,
     max_packets: int = -1
 ) -> list[dict]:
-    """
+    """Get `max_packets` packets waiting in `ser`.
+
+    If left unspecified, `max_packets` defaults to -1 ("as many as possible").
+
+    Args:
+        ser: The open Serialport object.
+        max_packets: The number of packets to get.
+    Returns:
+        packetlist: The list of read packets, where each packet is a dict.
     """
     packetlist = []
     n = 0
@@ -31,7 +39,15 @@ def get_packets(
 def serial2json(
     ser: Serialport | MockSerialport
 ) -> dict | None:
-    """
+    """Convert a serial packet into dictionary (json) form, if the packet exists.
+
+    Invalid packets are converted into a dictionary containing the key "error" and
+    a description.
+
+    Args:
+        ser: The open Serialport object.
+    Returns:
+        packetdict: A dictionary representation of the packet, or None.
     """
     try:
         start_byte = ser.read(1)
@@ -82,7 +98,16 @@ def serial2json(
 def process_packet(
     packet: bytes
 ) -> dict:
-    """
+    """Process a byte packet into dictionary (json) form.
+
+    Returns a dictionary containing the key "error" and a
+    corresponding description if an exception occurs during
+    processing.
+
+    Args:
+        packet: The packet (in bytes) to be processed.
+    Returns:
+        packetdict: The processed packet.
     """
     packetdict = dict()
     try:
@@ -125,7 +150,12 @@ def process_packet(
 def crc_check(
     data: bytes
 ) -> bool:
-    """
+    """Check if a sequence of bytes is CRC-16 valid.
+
+    Args:
+        data: A bytes object.
+    Returns:
+        out: True if CRC-16 valid, False otherwise.
     """
     bitarr = bytes_to_bitarr(data)
     #print(f'BEFORE CHECK: {bitarr}')
@@ -146,8 +176,14 @@ def crc_check(
 def bytes_to_bitarr(
     data: bytes
 ) -> list[int]:
-    """
-    Big endian
+    """Convert a bytes object to a bit array.
+
+    Uses big endian encoding of bytes.
+
+    Args:
+        data: A bytes object.
+    Returns:
+        bitarr: A list of bits representing `data`.
     """
     bitarr = []
     for byte in data:
@@ -159,7 +195,12 @@ def bytes_to_bitarr(
 def crc_encode(
     data: bytes
 ) -> bytes:
-    """
+    """Generate the CRC-16 error correction bytes for a given bytes object.
+
+    Args:
+        data: A bytes object.
+    Returns:
+        crc: The CRC error correction bytes for `data`.
     """
     bitarr = bytes_to_bitarr(data)
     crc_divisor = [1,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1]
