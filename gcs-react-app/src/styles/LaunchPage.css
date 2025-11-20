@@ -2,7 +2,16 @@
     padding: 0rem 3rem;
 }
 
+.error-message {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    font-size: 1.3rem;
+}
+
 .launch-header {
-    font-size: 1.5rem;
+    font-size: 1rem;
     line-height: 250%;
 }

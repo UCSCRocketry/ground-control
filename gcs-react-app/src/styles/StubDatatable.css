@@ -1,5 +1,5 @@
 .StubDatatable {
-    margin-top: 100px;
+    margin-top: 30px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -17,7 +17,7 @@
 .frame {
     display: flex;
     flex-direction: column;
-    width: 85%;
+    width: 100%;
     border-radius: 30px;
 }
 

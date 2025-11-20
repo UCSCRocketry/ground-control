@@ -2,20 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import "../styles/LaunchPage.css";
 import launchesData from "../launches.json";
+import { LaunchData } from '../components/LaunchData';
 
 const LaunchScreen = () => {
     const [searchParams] = useSearchParams();
     const [launch, setLaunch] = useState(null);
     const [loading, setLoading] = useState(true);
-    
+
     const launchId = searchParams.get('id');
-    
+
     useEffect(() => {
         if (launchId) {
             const foundLaunch = launchesData.launches.find(
                 launch => launch.launch_id === parseInt(launchId)
             );
-            
+
             setLaunch(foundLaunch);
             setLoading(false);
         }
@@ -23,19 +24,20 @@ const LaunchScreen = () => {
 
     const formatTimestamp = (timestamp) => {
         if (!timestamp) return '';
-        
+
         const date = new Date(timestamp);
-        const options = { 
-            year: 'numeric', 
-            month: 'long', 
+        const options = {
+            year: 'numeric',
+            month: 'long',
             day: 'numeric',
             hour: 'numeric',
             minute: 'numeric',
             hour12: true
         };
-        
+
         return date.toLocaleDateString('en-US', options);
     };
+
 
     return (
         <main id="launch-page">
@@ -44,6 +46,7 @@ const LaunchScreen = () => {
                     <p>Loading launch details...</p>
                 ) : launch ? (
                     <>
+                        {/* Header */}
                         <div className="launch-header">
                             <h1>{launch.name}</h1>
                             <span className="launch-id">ID: {launch.launch_id}</span>
@@ -51,15 +54,16 @@ const LaunchScreen = () => {
                                 <strong>Launch Time:</strong> {formatTimestamp(launch.timestamp)}
                             </p>
                         </div>
+                        <LaunchData />
                     </>
                 ) : (
                     <div className="error-message">
                         <h2>Launch Not Found</h2>
-                        <p>The launch with ID {launchId} could not be found.</p>
+                        <p>The launch with <strong>ID {launchId}</strong> could not be found.</p>
                     </div>
                 )}
             </div>
-        </main>
+        </main >
     );
 };
 
