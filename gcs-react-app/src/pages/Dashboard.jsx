@@ -10,6 +10,10 @@ import '../styles/Dashboard.css';
 export default function Dashboard() {
     //BACKEND CONNECTION AND DATA HANDLING
     const [IMU, setIMU] = useState([]); //initilize values (to []) for Gauge component 
+    const [baro, setBaro] = useState([]);
+    const [accLo, setAccLo] = useState([]);
+    const [accHi, setAccHi] = useState([]);
+    const [gyro, setGyro] = useState([]);
 
     // useEffect to connect to socket and receive data (backend)
     useEffect(() => {
@@ -35,6 +39,34 @@ export default function Dashboard() {
             console.log("Reconnected!");
         })
 
+        socket.on("send_data_ba", (data) => {
+            console.log(data);
+            console.log("Received barometer data!");
+            setBaro(baro => [...baro, data.payload, 0]);
+            setBaro(baro => baro.slice(-11, -1));
+        });
+
+        socket.on("send_data_al", (data) => {
+            console.log(data);
+            console.log("Received accel low data!");
+            setAccLo(accLo => [...accLo, data.payload, 0]);
+            setAccLo(accLo => accLo.slice(-11, -1));
+        });
+
+        socket.on("send_data_ah", (data) => {
+            console.log(data);
+            console.log("Received accel high data!");
+            setAccHi(accHi => [...accHi, data.payload, 0]);
+            setAccHi(accHi => accHi.slice(-11, -1));
+        });
+
+        socket.on("send_data_ro", (data) => {
+            console.log(data);
+            console.log("Received gyro data!");
+            setGyro(gyro => [...gyro, [data.payload.X, data.payload.Y, data.payload.Z], 0]);
+            setGyro(gyro => gyro.slice(-11, -1));
+        });
+
         socket.on("send_data_IMU", (data) => {
             console.log(data);
             console.log("Received data!");
@@ -54,24 +86,59 @@ export default function Dashboard() {
         
     }, []);
 
-    // once the IMU value exceeds 100, then dynamically update the max value to be 100 or higher, 
-    // dont ever decrease the max val for scope of relativity
-    const latestVal = IMU[IMU.length - 1] || 0;
+    // get latest values from each data stream
+    const latestBaro = baro[baro.length - 1] || 0;
+    const latestAccLo = accLo[accLo.length - 1] || 0;
+    const latestAccHi = accHi[accHi.length - 1] || 0;
+    const latestGyro = gyro[gyro.length - 1] || [0, 0, 0];
+    const latestIMU = IMU[IMU.length - 1] || 0;
+
+    // dynamic max value calculation based on all sensor data
+    const allValues = [latestBaro, latestAccLo, latestAccHi, latestIMU, ...latestGyro];
+    const maxCurrentValue = Math.max(...allValues);
     const [maxVal, setMaxVal] = useState(100);
-    if (latestVal > maxVal) {
-        const increments = Math.ceil((latestVal - maxVal) / 100);
+    if (maxCurrentValue > maxVal) {
+        const increments = Math.ceil((maxCurrentValue - maxVal) / 100);
         setMaxVal(prev => prev + increments * 100);
     }
+    
+    // get avg acceleration from both sensors
+    const averageAcceleration = () => {
+        if (accLo.length === 0 && accHi.length === 0) return Array.from({ length: 10 }, () => 0);
+        const maxLength = Math.max(accLo.length, accHi.length);
+        const avgAccel = [];
+        for (let i = 0; i < maxLength; i++) {
+            const loVal = accLo[i] || 0;
+            const hiVal = accHi[i] || 0;
+            avgAccel.push((loVal + hiVal) / 2);
+        }
+        return avgAccel;
+    };
 
-    const generateData = () =>
-        Array.from({ length: 10 }, () => Math.floor(Math.random() * 60 + 10));
-      
-    const altitudeData = generateData();
-    const velocityData = generateData();
-    const pitchData = generateData();
-    const rollData = generateData();
-    const yawData = generateData();
-    const accelerationData = generateData();
+    // calc vel using acceleration data
+    const calculateVelocity = () => {
+        const avgAccel = averageAcceleration();
+        if (avgAccel.length === 0) return Array.from({ length: 10 }, () => 0);
+        
+        const velocity = [0];
+        const dt = 0.1; // assume 0.1 second time steps //TODO: make this dynamic
+        
+        for (let i = 1; i < avgAccel.length; i++) {
+            // v = v0 + a*dt (simple Euler integration) //TODO: make this dynamic
+            velocity[i] = velocity[i-1] + avgAccel[i-1] * dt;
+        }
+        return velocity;
+    };
+
+    // Use calculated and sensor data for graphs (keep original titles)
+    const altitudeData = baro.length > 0 ? baro : Array.from({ length: 10 }, () => 0);
+    const velocityData = calculateVelocity();
+    const pitchData = gyro.length > 0 ? gyro.map(g => g[0]) : Array.from({ length: 10 }, () => 0);
+    const rollData = gyro.length > 0 ? gyro.map(g => g[1]) : Array.from({ length: 10 }, () => 0);
+    const yawData = gyro.length > 0 ? gyro.map(g => g[2]) : Array.from({ length: 10 }, () => 0);
+    const accelerationData = averageAcceleration();
+    const latestVal = 0;
+
 
     //FRONTEND VISUALIZATION
     return ( //returns the dashboard page with the gauges and the data 
@@ -133,19 +200,19 @@ export default function Dashboard() {
                 {/* Right side - gauge grid */}
                 <div className="dashboard-container">    
                     <Gauge
-                    value={latestVal}
+                    value={averageAcceleration()[averageAcceleration().length - 1] || 0}
                     min={0}
                     max={maxVal}
                     title="Acceleration"
                     />
                     <Gauge
-                    value={latestVal}
+                    value={latestBaro}
                     min={0}
                     max={maxVal}
                     title="Altitude"
                     />
                     <Gauge
-                    value={latestVal}
+                    value={calculateVelocity()[calculateVelocity().length - 1] || 0}
                     min={0}
                     max={maxVal}
                     title="Velocity"
