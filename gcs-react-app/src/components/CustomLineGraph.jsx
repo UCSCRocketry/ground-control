@@ -48,7 +48,7 @@ const CustomLineGraph = ({ title, data, label = 'Home' }) => {
   //   img.src = starClusterImage;
   // }, []);
 
-  const options = {
+  const options = { //TODO: change this to make it smoother and more dynamic  
     scales: {
       x: {
         grid: { display: false },
