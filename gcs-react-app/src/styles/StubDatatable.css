@@ -1,0 +1,115 @@
+.StubDatatable {
+    margin-top: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.content {
+    display: none;
+}
+
+.show-content {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.frame {
+    display: flex;
+    flex-direction: column;
+    width: 85%;
+    border-radius: 30px;
+}
+
+
+/* TABS STYLE */
+.tabs {
+    width: 100%;
+}
+
+.tabs ul li {
+    display: inline;
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    transition: 0.2s ease-in-out;
+}
+
+.tabs ul {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.tabs li {
+    padding: 15px;
+}
+
+.tabs li:hover {
+    cursor: pointer;
+    background-color: black;
+    color: white;
+}
+
+.active-tab-1 {
+    border-radius: 20px 0px 0px 0px;
+    background-color: black;
+    color: white;
+}
+
+.active-tab-2 {
+    border-radius: 0px 20px 0px 0px;
+    background-color: black;
+    color: white;
+}
+
+.inactive-tab-1 {
+    border-radius: 20px 0px 0px 0px;
+    background-color: #fdc700;
+    color: black;
+}
+
+.inactive-tab-2 {
+    border-radius: 0px 20px 0px 0px;
+    background-color: #fdc700;
+    color: black;
+}
+
+
+/* TABLE STYLES */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    border-radius: 0px 20px 20px 20px;
+    overflow: hidden;
+    table-layout: fixed;
+}
+
+tr {
+    height: 65px;
+}
+
+th, td {
+    border: 0px solid;
+    padding: 13px;
+    text-align: center;
+}
+
+tr:nth-child(even) {
+    background-color: rgb(230, 230, 230);
+}
+
+.header {
+    background-color: black;
+    color: #fff;
+    font-size: 18px;
+}
+
+.table-row {
+    transition: 0.15s ease-in-out;
+    font-size: 17px;
+}
+
+.table-row:hover {
+    background-color: #fdc700;
+}
