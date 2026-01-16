@@ -5,9 +5,10 @@ from flask import Flask, request
 from flask_cors import CORS
 from flask_socketio import SocketIO
 from threading import Lock, Event
-from Serialport import MockSerialport
+from Serialport import MockSerialport, Serialport
 from serial2num_PORT import get_packets
 from generate_data import generate
+import utils
 
 api = Flask(__name__)
 api.config['SECRET_KEY'] = 'secret!'
@@ -27,9 +28,9 @@ state = {"ba": [],      # barometer
 
 queue = []
 connected_users = 0
+DATAFILE = 'run_1.csv'
 
 # TODO:
-# - send graph state to frontend on connect
 # - change update_data() to start on backend start, rather than first user connect
 # - clean up backend structure (https://hackersandslackers.com/flask-application-factory/)
 
@@ -37,10 +38,12 @@ connected_users = 0
 def update_data():
     global ser, queue
     while True:
-        socketio.sleep(2)
-        print("Updated data!")
+        socketio.sleep(0.5)
+        #print("Updated data!")
         generate(ser)
         data = get_packets(ser)
+        if len(data) > 0:
+            utils.packetlist_to_csv(DATAFILE, ('seqid', 'id', 'timestamp', 'payload'), data)
         for packet in data:
             queue.insert(0, packet)
 
@@ -84,6 +87,7 @@ def connect_msg():
     send_state()
 
     if thread_update is None:
+        #ser = Serialport('COM4', baud=57600)
         ser = MockSerialport()
         thread_update = socketio.start_background_task(update_data)
 
