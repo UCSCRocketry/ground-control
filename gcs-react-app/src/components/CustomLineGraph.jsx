@@ -48,11 +48,20 @@ const CustomLineGraph = ({ title, data, label = 'Home' }) => {
   //   img.src = starClusterImage;
   // }, []);
 
+  const resolvedData = Array.isArray(data) ? data : [];
+  const hasData = resolvedData.length > 0;
+  const rawMin = hasData ? Math.min(...resolvedData) : 0;
+  const rawMax = hasData ? Math.max(...resolvedData) : 80;
+  const range = rawMax - rawMin;
+  const padding = range === 0 ? Math.max(1, Math.abs(rawMax) * 0.1) : range * 0.1;
+  const yMin = hasData ? rawMin - padding : 0;
+  const yMax = hasData ? rawMax + padding : 80;
+  const labels = resolvedData.map((_, idx) => idx + 1);
+
   const options = {
     scales: {
       x: {
         grid: { display: false },
-        labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
         ticks: {
           color: 'black',
           font: { family: 'Nunito', size: 12 },
@@ -61,10 +70,9 @@ const CustomLineGraph = ({ title, data, label = 'Home' }) => {
       y: {
         grid: { display: false },
         border: { display: false },
-        min: 0,
-        max: 80,
+        min: yMin,
+        max: yMax,
         ticks: {
-          stepSize: 10,
           color: 'black',
           font: { family: 'Nunito', size: 12 },
         },
@@ -80,6 +88,7 @@ const CustomLineGraph = ({ title, data, label = 'Home' }) => {
   };
 
   const canvasData = {
+    labels,
     datasets: [
       {
         label,
@@ -89,7 +98,7 @@ const CustomLineGraph = ({ title, data, label = 'Home' }) => {
         // backgroundColor: backgroundPattern,
         backgroundColor: 'white',
         lineTension: 0.4,
-        data,
+        data: resolvedData,
         borderWidth: 1,
       },
     ],

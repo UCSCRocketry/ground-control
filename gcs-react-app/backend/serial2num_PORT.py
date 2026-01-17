@@ -1,245 +1,295 @@
 from Serialport import Serialport, MockSerialport
+import datetime
+import csv
 
 #START_BYTES = ('!', '"', '#', '$')
-START_BYTE_MIN = 0x21.to_bytes(length=1)
-START_BYTE_MAX = 0x24.to_bytes(length=1)
-END_BYTES = 0x0D0A.to_bytes(length=2)
-SENSOR_IDS = ('ba', 'gp', 'al', 'ah', 'ro', 'sc', 'im')
 
-def get_packets(
-    ser: Serialport | MockSerialport,
-    max_packets: int = -1
-) -> list[dict]:
-    """Get `max_packets` packets waiting in `ser`.
+class Serial2Num():
 
-    If left unspecified, `max_packets` defaults to -1 ("as many as possible").
+    def __init__(
+        self,
+        storePackets=True,
+        header=('seqid', 'id', 'timestamp', 'payload')
+    ):
+        self.START_BYTE_MIN = 0x21.to_bytes(length=1)
+        self.START_BYTE_MAX = 0x24.to_bytes(length=1)
+        self.END_BYTES = 0x0D0A.to_bytes(length=2)
+        self.SENSOR_IDS = ('ba', 'gp', 'al', 'ah', 'ro', 'sc', 'im')
+        self.packets_received = 0
 
-    Args:
-        ser: The open Serialport object.
-        max_packets: The number of packets to get.
-    Returns:
-        packetlist: The list of read packets, where each packet is a dict.
-    """
-    packetlist = []
-    n = 0
-    while n > max_packets:
-        packet = serial2json(ser)
+        if storePackets:
+            self.dt = datetime.datetime
+            self.dfilename = self.dt.now().strftime('run_%Y-%m-%dT%H%M.csv')
+            self.header = header
 
-        if packet == None:
-            break
-        elif packet.get('error') != None:
-            print(f'get_packets(): Error: {packet}')
-            continue
+            with open(self.dfilename, 'w', newline='') as f:
+                writer = csv.DictWriter(f, header)
+                writer.writeheader()
 
-        packetlist.append(packet)
-        n += 1
-    
-    return packetlist
+        else:
+            self.dt = None
+            self.dfilename = None
+            self.header = None
+        
+        self.packets_stored = 0
 
-def serial2json(
-    ser: Serialport | MockSerialport
-) -> dict | None:
-    """Convert a serial packet into dictionary (json) form, if the packet exists.
+    def get_packets(
+        self,
+        ser: Serialport | MockSerialport,
+        max_packets: int = -1
+    ) -> list[dict]:
+        """Get `max_packets` packets waiting in `ser`.
 
-    Invalid packets are converted into a dictionary containing the key "error" and
-    a description.
+        If left unspecified, `max_packets` defaults to -1 ("as many as possible").
 
-    Args:
-        ser: The open Serialport object.
-    Returns:
-        packetdict: A dictionary representation of the packet, or None.
-    """
-    try:
-        start_byte = ser.read(1)
-        while start_byte != None and ((start_byte < START_BYTE_MIN) or (start_byte > START_BYTE_MAX)):
-            print('serial2json: Start byte not found.')
+        Args:
+            ser: The open Serialport object.
+            max_packets: The number of packets to get.
+        Returns:
+            packetlist: The list of read packets, where each packet is a dict.
+        """
+        packetlist = []
+        n = 0
+        while max_packets == -1 or n < max_packets:
+            packet = self.serial2json(ser)
+
+            if packet == None:
+                break
+            elif packet.get('error') != None:
+                print(f'get_packets(): Error: {packet}')
+                continue
+
+            packetlist.append(packet)
+            self.packets_received += 1
+            n += 1
+        
+        return packetlist
+
+    def serial2json(
+        self,
+        ser: Serialport | MockSerialport
+    ) -> dict | None:
+        """Convert a serial packet into dictionary (json) form, if the packet exists.
+
+        Invalid packets are converted into a dictionary containing the key "error" and
+        a description.
+
+        Args:
+            ser: The open Serialport object.
+        Returns:
+            packetdict: A dictionary representation of the packet, or None.
+        """
+        try:
             start_byte = ser.read(1)
-        
-        if start_byte == None:
-            return None
+            while start_byte != None and ((start_byte < self.START_BYTE_MIN) or (start_byte > self.START_BYTE_MAX)):
+                print('serial2json: Start byte not found.')
+                start_byte = ser.read(1)
+            
+            if start_byte == None:
+                return None
 
-        packet = start_byte + ser.read(31)
+            packet = start_byte + ser.read(31)
 
-        # TODO: handle reading bytes while packet is being transmitted
-        if not packet or len(packet) != 32:
-            print('serial2json: Received bad packet.')
-            return {'error': 'Received bad packet'}
-        
-        res = crc_check(packet[1:30])
-        if not res:
-            print('serial2json: Packet failed CRC check.')
-            return {'error': 'Packet failed CRC check'}
-        
-        packetdict = process_packet(packet)
-        if packetdict.get('error') != None:
+            # TODO: handle reading bytes while packet is being transmitted
+            if not packet or len(packet) != 32:
+                print('serial2json: Received bad packet.')
+                return {'error': 'Received bad packet'}
+            
+            """
+            res = self._crc_check(packet[1:30])
+            if not res:
+                print('serial2json: Packet failed CRC check.')
+                return {'error': 'Packet failed CRC check'}
+            """
+
+            packetdict = self._process_packet(packet)
+            if packetdict.get('error') != None:
+                return packetdict
+
+            match packetdict['start']:
+                case '$':
+                    # response expected
+                    msg = 0x220D0A.to_bytes(length=3)
+                    ser.write(msg)
+                case '#':
+                    # discard message
+                    print(packetdict)
+                    packetdict = {'exit': 'Discarded message'}
+                case '"' | '!':
+                    # acknowledgement | no response expected
+                    pass
+            
+            packetdict.pop('start')
+
             return packetdict
+            
+        except Exception as e:
+            print(f'serial2json(): Encountered exception: {e}')
+            return {'error': {e}}
 
-        match packetdict['start']:
-            case '$':
-                # response expected
-                msg = 0x220D0A.to_bytes(length=3)
-                ser.write(msg)
-            case '#':
-                # discard message
-                print(packetdict)
-                packetdict = {'exit': 'Discarded message'}
-            case '"' | '!':
-                # acknowledgement | no response expected
-                pass
-        
-        packetdict.pop('start')
+    def store_packets(
+        self,
+        packetlist: list
+    ) -> None:
+        """
+        """
+        with open(self.dfilename, 'a', newline='') as f:
+            writer = csv.DictWriter(f, self.header)
+            writer.writerows([row for row in packetlist])
 
-        return packetdict
-        
-    except Exception as e:
-        print(f'serial2json(): Encountered exception: {e}')
-        return {'error': {e}}
+        self.packets_stored += 1
 
-def process_packet(
-    packet: bytes
-) -> dict:
-    """Process a byte packet into dictionary (json) form.
+    def _process_packet(
+        self,
+        packet: bytes
+    ) -> dict:
+        """Process a byte packet into dictionary (json) form.
 
-    Returns a dictionary containing the key "error" and a
-    corresponding description if an exception occurs during
-    processing.
+        Returns a dictionary containing the key "error" and a
+        corresponding description if an exception occurs during
+        processing.
 
-    Args:
-        packet: The packet (in bytes) to be processed.
-    Returns:
-        packetdict: The processed packet.
-    """
-    packetdict = dict()
-    try:
-        packetdict['start'] = packet[0:1].decode('ascii')
-        packetdict['seqid'] = int.from_bytes(packet[1:5])
-        packetdict['id'] = packet[5:7].decode('ascii')
-        if packetdict['id'] not in SENSOR_IDS:
-            raise ValueError('Invalid sensor ID')
-        packetdict['timestamp'] = int.from_bytes(packet[7:11])
+        Args:
+            packet: The packet (in bytes) to be processed.
+        Returns:
+            packetdict: The processed packet.
+        """
+        packetdict = dict()
+        try:
+            packetdict['start'] = packet[0:1].decode('ascii')
+            packetdict['seqid'] = int.from_bytes(packet[1:5])
+            packetdict['id'] = packet[5:7].decode('ascii')
+            if packetdict['id'] not in self.SENSOR_IDS:
+                raise ValueError('Invalid sensor ID')
+            packetdict['timestamp'] = int.from_bytes(packet[7:11])
 
-        # parse packet payload (depends on sensor id)
-        match packetdict['id']:
-            case 'ro':
-                packetdict['payload'] = {'X': int.from_bytes(packet[14:18]),
-                                         'Y': int.from_bytes(packet[19:23]),
-                                         'Z': int.from_bytes(packet[24:28])}
-                
-            case 'ba':
-                bindata = int.from_bytes(packet[11:28])
-                exp = bindata % 10
-                bindata -= exp
-                fp = bindata % 100
-                bindata -= fp
-                digit = bindata
+            # parse packet payload (depends on sensor id)
+            match packetdict['id']:
+                case 'ro':
+                    packetdict['payload'] = {'X': int.from_bytes(packet[14:18]),
+                                            'Y': int.from_bytes(packet[19:23]),
+                                            'Z': int.from_bytes(packet[24:28])}
+                    
+                case 'ba':
+                    bindata = int.from_bytes(packet[11:28])
+                    exp = bindata % 10
+                    bindata -= exp
+                    fp = bindata % 100
+                    bindata -= fp
+                    digit = bindata
 
-                packetdict['payload'] = (digit + (fp/10)) * (10**exp)
+                    packetdict['payload'] = (digit + (fp/10)) * (10**exp)
 
-            case 'al' | 'ah' | _:
-                packetdict['payload'] = int.from_bytes(packet[11:28])
+                case 'al' | 'ah' | _:
+                    packetdict['payload'] = int.from_bytes(packet[11:28])
 
-        if packet[30:32] != END_BYTES:
-            raise ValueError('Missing end bytes')
-        
-        return packetdict
-        
-    except Exception as e:
-        print(f'Encountered exception: {e}')
-        return {'error': f'Exception: {e}'}
+            if packet[30:32] != self.END_BYTES:
+                raise ValueError('Missing end bytes')
+            
+            return packetdict
+            
+        except Exception as e:
+            print(f'Encountered exception: {e}')
+            return {'error': f'Exception: {e}'}
 
-def crc_check(
-    data: bytes
-) -> bool:
-    """Check if a sequence of bytes is CRC-16 valid.
+    def _crc_check(
+        self,
+        data: bytes
+    ) -> bool:
+        """Check if a sequence of bytes is CRC-16 valid.
 
-    Args:
-        data: A bytes object.
-    Returns:
-        out: True if CRC-16 valid, False otherwise.
-    """
-    bitarr = bytes_to_bitarr(data)
-    #print(f'BEFORE CHECK: {bitarr}')
-    crc_divisor = [1,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1]
-    offset = 0
-    while (offset < len(bitarr) - 17):
-        while (bitarr[offset] != 1 and offset < len(bitarr) - 17):
+        Args:
+            data: A bytes object.
+        Returns:
+            out: True if CRC-16 valid, False otherwise.
+        """
+        bitarr = self._bytes_to_bitarr(data)
+        #print(f'BEFORE CHECK: {bitarr}')
+        crc_divisor = [1,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1]
+        offset = 0
+        while (offset < len(bitarr) - 17):
+            while (bitarr[offset] != 1 and offset < len(bitarr) - 17):
+                offset += 1
+            for j in range(17):
+                bitarr[j + offset] = bitarr[j + offset] ^ crc_divisor[j]
             offset += 1
-        for j in range(17):
-            bitarr[j + offset] = bitarr[j + offset] ^ crc_divisor[j]
-        offset += 1
-    #print(f'AFTER CHECK: {bitarr}')
-    if (bitarr[-16::] == [0 for i in range(16)]):
-        return True
-    
-    return False
+        #print(f'AFTER CHECK: {bitarr}')
+        if (bitarr[-16::] == [0 for i in range(16)]):
+            return True
+        
+        return False
 
-def bytes_to_bitarr(
-    data: bytes
-) -> list[int]:
-    """Convert a bytes object to a bit array.
+    def _bytes_to_bitarr(
+        self,
+        data: bytes
+    ) -> list[int]:
+        """Convert a bytes object to a bit array.
 
-    Uses big endian encoding of bytes.
+        Uses big endian encoding of bytes.
 
-    Args:
-        data: A bytes object.
-    Returns:
-        bitarr: A list of bits representing `data`.
-    """
-    bitarr = []
-    for byte in data:
-        for i in range(7, -1, -1):
-            bitarr.append(1 if (byte & (1 << i)) != 0 else 0)
-        #bitarr.append("BYTE END")
-    return bitarr
+        Args:
+            data: A bytes object.
+        Returns:
+            bitarr: A list of bits representing `data`.
+        """
+        bitarr = []
+        for byte in data:
+            for i in range(7, -1, -1):
+                bitarr.append(1 if (byte & (1 << i)) != 0 else 0)
+            #bitarr.append("BYTE END")
+        return bitarr
 
-def crc_encode(
-    data: bytes
-) -> bytes:
-    """Generate the CRC-16 error correction bytes for a given bytes object.
+    def _crc_encode(
+        self,
+        data: bytes
+    ) -> bytes:
+        """Generate the CRC-16 error correction bytes for a given bytes object.
 
-    Args:
-        data: A bytes object.
-    Returns:
-        crc: The CRC error correction bytes for `data`.
-    """
-    bitarr = bytes_to_bitarr(data)
-    crc_divisor = [1,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1]
-    bitarr.extend([0 for i in range(16)])
+        Args:
+            data: A bytes object.
+        Returns:
+            crc: The CRC error correction bytes for `data`.
+        """
+        bitarr = self._bytes_to_bitarr(data)
+        crc_divisor = [1,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1]
+        bitarr.extend([0 for i in range(16)])
 
-    offset = 0
-    while (offset < len(bitarr) - 17):
-        while (bitarr[offset] != 1 and offset < len(bitarr) - 17):
+        offset = 0
+        while (offset < len(bitarr) - 17):
+            while (bitarr[offset] != 1 and offset < len(bitarr) - 17):
+                offset += 1
+            for j in range(17):
+                bitarr[j + offset] = bitarr[j + offset] ^ crc_divisor[j]
             offset += 1
-        for j in range(17):
-            bitarr[j + offset] = bitarr[j + offset] ^ crc_divisor[j]
-        offset += 1
 
-    i = 0
-    decimal_1 = 0
-    decimal_2 = 0
-    for j in range(7, -1, -1):
-        decimal_1 += bitarr[-16 + i] * (2 ** j)
-        decimal_2 += bitarr[-8 + i] * (2 ** j)
-        i += 1
+        i = 0
+        decimal_1 = 0
+        decimal_2 = 0
+        for j in range(7, -1, -1):
+            decimal_1 += bitarr[-16 + i] * (2 ** j)
+            decimal_2 += bitarr[-8 + i] * (2 ** j)
+            i += 1
 
-    crc = bytes()
-    crc += decimal_1.to_bytes(1, 'big')
-    crc += decimal_2.to_bytes(1, 'big')
-    return crc
+        crc = bytes()
+        crc += decimal_1.to_bytes(1, 'big')
+        crc += decimal_2.to_bytes(1, 'big')
+        return crc
 
 def test():
+    s2n_conv = Serial2Num()
+
     start = int.to_bytes(0x21)
     seqid = int.to_bytes(0x00000001, length=4)
     id = int.to_bytes(0x726F, length=2)
     timestamp = int.to_bytes(0x00001011, length=4)
     payload = int.to_bytes(0x00005800000001590000004F6000000352, length=17)
-    crc = crc_encode(seqid+id+timestamp+payload)
+    crc = s2n_conv._crc_encode(seqid+id+timestamp+payload)
     end = int.to_bytes(0x0D0A, length=2)
     dummy_packet = start+seqid+id+timestamp+payload+crc+end
     print((dummy_packet))
     ser = MockSerialport()
     ser.write(dummy_packet)
-    res = serial2json(ser)
+    res = s2n_conv.serial2json(ser)
     print(res)
     ser.close()
 

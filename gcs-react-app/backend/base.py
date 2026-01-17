@@ -5,8 +5,8 @@ from flask import Flask, request
 from flask_cors import CORS
 from flask_socketio import SocketIO
 from threading import Lock, Event
-from Serialport import MockSerialport
-from serial2num_PORT import get_packets
+from Serialport import MockSerialport, Serialport
+from serial2num_PORT import Serial2Num
 from generate_data import generate
 
 api = Flask(__name__)
@@ -25,22 +25,27 @@ state = {"ba": [],      # barometer
          "al": [],      # low-g accel
          "ro": []}      # gyroscope
 
+ser2Num = Serial2Num()
+
 queue = []
 connected_users = 0
 
 # TODO:
-# - send graph state to frontend on connect
 # - change update_data() to start on backend start, rather than first user connect
 # - clean up backend structure (https://hackersandslackers.com/flask-application-factory/)
+# - customize callsign and send callsign out every so often
 
 # generates randomized data from a serialport every 2 seconds
 def update_data():
     global ser, queue
     while True:
-        socketio.sleep(2)
-        print("Updated data!")
-        generate(ser)
-        data = get_packets(ser)
+        socketio.sleep(0.1)
+        #print("Updated data!")
+        #generate(ser)
+        data = ser2Num.get_packets(ser, max_packets=20)
+        if len(data) > 0:
+            #utils.packetlist_to_csv(DATAFILE, ('seqid', 'id', 'timestamp', 'payload'), data)
+            ser2Num.store_packets(data)
         for packet in data:
             queue.insert(0, packet)
 
@@ -50,7 +55,7 @@ def send_data(event):
     #count = 0
     try:
         while event.is_set():
-            socketio.sleep(1)
+            socketio.sleep(0.05)
             while len(queue) > 0:
                 #count += 1
                 print('Sending data...')
@@ -84,7 +89,8 @@ def connect_msg():
     send_state()
 
     if thread_update is None:
-        ser = MockSerialport()
+        ser = Serialport('COM1', baud=57600)
+        #ser = MockSerialport()
         thread_update = socketio.start_background_task(update_data)
 
     with thread_lock:
