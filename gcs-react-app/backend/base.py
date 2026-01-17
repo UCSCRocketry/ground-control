@@ -34,6 +34,7 @@ DATAFILE = 'run_1.csv'
 # TODO:
 # - change update_data() to start on backend start, rather than first user connect
 # - clean up backend structure (https://hackersandslackers.com/flask-application-factory/)
+# - customize callsign and send callsign out every so often
 
 # generates randomized data from a serialport every 2 seconds
 def update_data():
