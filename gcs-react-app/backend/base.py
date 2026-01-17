@@ -6,7 +6,7 @@ from flask_cors import CORS
 from flask_socketio import SocketIO
 from threading import Lock, Event
 from Serialport import MockSerialport, Serialport
-from serial2num_PORT import get_packets
+from serial2num_PORT import Serial2Num
 from generate_data import generate
 import utils
 
@@ -26,6 +26,8 @@ state = {"ba": [],      # barometer
          "al": [],      # low-g accel
          "ro": []}      # gyroscope
 
+ser2Num = Serial2Num()
+
 queue = []
 connected_users = 0
 DATAFILE = 'run_1.csv'
@@ -41,7 +43,7 @@ def update_data():
         socketio.sleep(0.5)
         #print("Updated data!")
         generate(ser)
-        data = get_packets(ser)
+        data = ser2Num.get_packets(ser)
         if len(data) > 0:
             utils.packetlist_to_csv(DATAFILE, ('seqid', 'id', 'timestamp', 'payload'), data)
         for packet in data:
