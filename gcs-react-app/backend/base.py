@@ -40,7 +40,7 @@ DATAFILE = 'run_1.csv'
 def update_data():
     global ser, queue
     while True:
-        socketio.sleep(0.5)
+        socketio.sleep(0.1)
         #print("Updated data!")
         generate(ser)
         data = ser2Num.get_packets(ser)
