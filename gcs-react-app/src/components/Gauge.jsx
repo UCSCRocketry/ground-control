@@ -5,7 +5,7 @@ import {useNavigate}  from 'react-router-dom';
 export default function Gauge({ value, min, max, title }) {
     const navigate = useNavigate();
       
-    // navigate to a f  ull screen graph page
+    // navigate to a full screen graph page
     const handleClick = () => {
       navigate(`/launch?id=${1}`); //TODO: replace this with route to full screen graph page
   };

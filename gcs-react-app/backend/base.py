@@ -37,7 +37,7 @@ connected_users = 0
 def update_data():
     global ser, queue
     while True:
-        socketio.sleep(2)
+        socketio.sleep(0.1)
         print("Updated data!")
         generate(ser)
         data = get_packets(ser)
@@ -50,7 +50,7 @@ def send_data(event):
     #count = 0
     try:
         while event.is_set():
-            socketio.sleep(1)
+            socketio.sleep(0.05)
             while len(queue) > 0:
                 #count += 1
                 print('Sending data...')
