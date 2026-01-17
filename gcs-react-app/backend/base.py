@@ -29,7 +29,6 @@ ser2Num = Serial2Num()
 
 queue = []
 connected_users = 0
-DATAFILE = 'run_1.csv'
 
 # TODO:
 # - change update_data() to start on backend start, rather than first user connect
