@@ -29,7 +29,6 @@ ser2Num = Serial2Num()
 
 queue = []
 connected_users = 0
-DATAFILE = 'run_1.csv'
 
 # TODO:
 # - change update_data() to start on backend start, rather than first user connect
@@ -42,8 +41,8 @@ def update_data():
     while True:
         socketio.sleep(0.1)
         #print("Updated data!")
-        generate(ser)
-        data = ser2Num.get_packets(ser)
+        #generate(ser)
+        data = ser2Num.get_packets(ser, max_packets=20)
         if len(data) > 0:
             #utils.packetlist_to_csv(DATAFILE, ('seqid', 'id', 'timestamp', 'payload'), data)
             ser2Num.store_packets(data)
@@ -90,8 +89,8 @@ def connect_msg():
     send_state()
 
     if thread_update is None:
-        #ser = Serialport('COM4', baud=57600)
-        ser = MockSerialport()
+        ser = Serialport('COM1', baud=57600)
+        #ser = MockSerialport()
         thread_update = socketio.start_background_task(update_data)
 
     with thread_lock:

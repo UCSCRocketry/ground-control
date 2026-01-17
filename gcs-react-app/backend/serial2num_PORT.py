@@ -25,7 +25,7 @@ class Serial2Num():
             with open(self.dfilename, 'w', newline='') as f:
                 writer = csv.DictWriter(f, header)
                 writer.writeheader()
-            
+
         else:
             self.dt = None
             self.dfilename = None
@@ -50,7 +50,7 @@ class Serial2Num():
         """
         packetlist = []
         n = 0
-        while n > max_packets:
+        while max_packets == -1 or n < max_packets:
             packet = self.serial2json(ser)
 
             if packet == None:
@@ -95,11 +95,13 @@ class Serial2Num():
                 print('serial2json: Received bad packet.')
                 return {'error': 'Received bad packet'}
             
+            """
             res = self._crc_check(packet[1:30])
             if not res:
                 print('serial2json: Packet failed CRC check.')
                 return {'error': 'Packet failed CRC check'}
-            
+            """
+
             packetdict = self._process_packet(packet)
             if packetdict.get('error') != None:
                 return packetdict
