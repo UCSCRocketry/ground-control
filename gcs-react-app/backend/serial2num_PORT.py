@@ -1,4 +1,6 @@
 from Serialport import Serialport, MockSerialport
+import datetime
+import csv
 
 #START_BYTES = ('!', '"', '#', '$')
 
@@ -14,6 +16,22 @@ class Serial2Num():
         self.END_BYTES = 0x0D0A.to_bytes(length=2)
         self.SENSOR_IDS = ('ba', 'gp', 'al', 'ah', 'ro', 'sc', 'im')
         self.packets_received = 0
+
+        if storePackets:
+            self.dt = datetime.datetime
+            self.dfilename = self.dt.now().strftime('run_%Y-%m-%dT%H%M.csv')
+            self.header = header
+
+            with open(self.dfilename, 'w', newline='') as f:
+                writer = csv.DictWriter(f, header)
+                writer.writeheader()
+            
+        else:
+            self.dt = None
+            self.dfilename = None
+            self.header = None
+        
+        self.packets_stored = 0
 
     def get_packets(
         self,
@@ -106,6 +124,18 @@ class Serial2Num():
         except Exception as e:
             print(f'serial2json(): Encountered exception: {e}')
             return {'error': {e}}
+
+    def store_packets(
+        self,
+        packetlist: list
+    ) -> None:
+        """
+        """
+        with open(self.dfilename, 'a', newline='') as f:
+            writer = csv.DictWriter(f, self.header)
+            writer.writerows([row for row in packetlist])
+
+        self.packets_stored += 1
 
     def _process_packet(
         self,

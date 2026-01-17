@@ -8,7 +8,6 @@ from threading import Lock, Event
 from Serialport import MockSerialport, Serialport
 from serial2num_PORT import Serial2Num
 from generate_data import generate
-import utils
 
 api = Flask(__name__)
 api.config['SECRET_KEY'] = 'secret!'
@@ -45,7 +44,8 @@ def update_data():
         generate(ser)
         data = ser2Num.get_packets(ser)
         if len(data) > 0:
-            utils.packetlist_to_csv(DATAFILE, ('seqid', 'id', 'timestamp', 'payload'), data)
+            #utils.packetlist_to_csv(DATAFILE, ('seqid', 'id', 'timestamp', 'payload'), data)
+            ser2Num.store_packets(data)
         for packet in data:
             queue.insert(0, packet)
 
