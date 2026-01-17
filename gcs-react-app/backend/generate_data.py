@@ -1,5 +1,5 @@
 import random
-from serial2num_PORT import crc_encode
+from serial2num_PORT import Serial2Num
 
 '''
 SENSOR IDs:
@@ -15,9 +15,10 @@ SENSORS = [0x6261, 0x6168, 0x616C, 0x726F]
 
 timestamp = 0
 seqid = 0
+ser2Num = Serial2Num(storePackets=False)
 
 def generate(ser):
-    global timestamp, seqid
+    global timestamp, seqid, ser2Num
     n = random.choices([0,1,2,3,4,5], weights=[10, 20, 40, 50, 50, 40])[0]
     timestamp += random.randint(1000, 10000)
     for i in range(n):
@@ -38,7 +39,7 @@ def generate(ser):
         
         packet = bytes()
         packet += seqid.to_bytes(length=4) + sensorid + timestamp.to_bytes(length=4) + payload
-        crc = crc_encode(packet)
+        crc = ser2Num._crc_encode(packet)
 
         start = 0x21.to_bytes(length=1)
         end = 0x0D0A.to_bytes(length=2)

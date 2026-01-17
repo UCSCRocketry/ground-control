@@ -6,9 +6,8 @@ from flask_cors import CORS
 from flask_socketio import SocketIO
 from threading import Lock, Event
 from Serialport import MockSerialport, Serialport
-from serial2num_PORT import get_packets
+from serial2num_PORT import Serial2Num
 from generate_data import generate
-import utils
 
 api = Flask(__name__)
 api.config['SECRET_KEY'] = 'secret!'
@@ -26,6 +25,8 @@ state = {"ba": [],      # barometer
          "al": [],      # low-g accel
          "ro": []}      # gyroscope
 
+ser2Num = Serial2Num()
+
 queue = []
 connected_users = 0
 DATAFILE = 'run_1.csv'
@@ -33,6 +34,7 @@ DATAFILE = 'run_1.csv'
 # TODO:
 # - change update_data() to start on backend start, rather than first user connect
 # - clean up backend structure (https://hackersandslackers.com/flask-application-factory/)
+# - customize callsign and send callsign out every so often
 
 # generates randomized data from a serialport every 2 seconds
 def update_data():
@@ -41,9 +43,10 @@ def update_data():
         socketio.sleep(0.5)
         #print("Updated data!")
         generate(ser)
-        data = get_packets(ser)
+        data = ser2Num.get_packets(ser)
         if len(data) > 0:
-            utils.packetlist_to_csv(DATAFILE, ('seqid', 'id', 'timestamp', 'payload'), data)
+            #utils.packetlist_to_csv(DATAFILE, ('seqid', 'id', 'timestamp', 'payload'), data)
+            ser2Num.store_packets(data)
         for packet in data:
             queue.insert(0, packet)
 
