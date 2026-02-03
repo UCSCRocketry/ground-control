@@ -55,6 +55,8 @@ class Serial2Num():
 
             if packet == None:
                 break
+            elif packet.get('exit') != None:
+                print(f'get_packets(): Discarded message')
             elif packet.get('error') != None:
                 print(f'get_packets(): Error: {packet}')
                 continue
