@@ -93,16 +93,15 @@ class Serial2Num():
             packet = start_byte + ser.read(31)
 
             # TODO: handle reading bytes while packet is being transmitted
+            # TODO?: validate correctness of stop bytes
             if not packet or len(packet) != 32:
                 print('serial2json: Received bad packet.')
                 return {'error': 'Received bad packet'}
             
-            """
-            res = self._crc_check(packet[1:30])
+            res = self._crc_validate(data=packet[0:28], crc=packet[28:30])
             if not res:
                 print('serial2json: Packet failed CRC check.')
                 return {'error': 'Packet failed CRC check'}
-            """
 
             packetdict = self._process_packet(packet)
             if packetdict.get('error') != None:
@@ -194,88 +193,41 @@ class Serial2Num():
             print(f'Encountered exception: {e}')
             return {'error': f'Exception: {e}'}
 
-    def _crc_check(
+    def _crc_validate(
         self,
-        data: bytes
+        data: bytes,
+        crc: bytes
     ) -> bool:
-        """Check if a sequence of bytes is CRC-16 valid.
+        """Check if a sequence of bytes is CRC-16-CCITT valid.
 
         Args:
             data: A bytes object.
+            crc: The two CRC bytes accompanying `data`.
         Returns:
-            out: True if CRC-16 valid, False otherwise.
+            out: True if CRC-16-CCITT valid, False otherwise.
         """
-        bitarr = self._bytes_to_bitarr(data)
-        #print(f'BEFORE CHECK: {bitarr}')
-        crc_divisor = [1,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1]
-        offset = 0
-        while (offset < len(bitarr) - 17):
-            while (bitarr[offset] != 1 and offset < len(bitarr) - 17):
-                offset += 1
-            for j in range(17):
-                bitarr[j + offset] = bitarr[j + offset] ^ crc_divisor[j]
-            offset += 1
-        #print(f'AFTER CHECK: {bitarr}')
-        if (bitarr[-16::] == [0 for i in range(16)]):
-            return True
-        
-        return False
+        return self._crc_compute(data) == crc
 
-    def _bytes_to_bitarr(
-        self,
-        data: bytes
-    ) -> list[int]:
-        """Convert a bytes object to a bit array.
-
-        Uses big endian encoding of bytes.
-
-        Args:
-            data: A bytes object.
-        Returns:
-            bitarr: A list of bits representing `data`.
-        """
-        bitarr = []
-        for byte in data:
-            for i in range(7, -1, -1):
-                bitarr.append(1 if (byte & (1 << i)) != 0 else 0)
-            #bitarr.append("BYTE END")
-        return bitarr
-
-    def _crc_encode(
+    def _crc_compute(
         self,
         data: bytes
     ) -> bytes:
-        """Generate the CRC-16 error correction bytes for a given bytes object.
+        """Generate the CRC-16-CCITTT error correction bytes for a given bytes object.
 
         Args:
             data: A bytes object.
         Returns:
             crc: The CRC error correction bytes for `data`.
         """
-        bitarr = self._bytes_to_bitarr(data)
-        crc_divisor = [1,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1]
-        bitarr.extend([0 for i in range(16)])
-
-        offset = 0
-        while (offset < len(bitarr) - 17):
-            while (bitarr[offset] != 1 and offset < len(bitarr) - 17):
-                offset += 1
-            for j in range(17):
-                bitarr[j + offset] = bitarr[j + offset] ^ crc_divisor[j]
-            offset += 1
-
-        i = 0
-        decimal_1 = 0
-        decimal_2 = 0
-        for j in range(7, -1, -1):
-            decimal_1 += bitarr[-16 + i] * (2 ** j)
-            decimal_2 += bitarr[-8 + i] * (2 ** j)
-            i += 1
-
-        crc = bytes()
-        crc += decimal_1.to_bytes(1, 'big')
-        crc += decimal_2.to_bytes(1, 'big')
-        return crc
+        crc = 0xFFFF    # TODO: 0x1D0F instead?
+        for b in data:
+            crc ^= b << 8
+            for _ in range(8):
+                if crc & 0x8000:
+                    crc = ((crc << 1) ^ 0x1021) & 0xFFFF
+                else:
+                    crc = (crc << 1) & 0xFFFF
+        return crc.to_bytes(length=2)
 
 def test():
     s2n_conv = Serial2Num()
@@ -285,7 +237,7 @@ def test():
     id = int.to_bytes(0x726F, length=2)
     timestamp = int.to_bytes(0x00001011, length=4)
     payload = int.to_bytes(0x00005800000001590000004F6000000352, length=17)
-    crc = s2n_conv._crc_encode(seqid+id+timestamp+payload)
+    crc = s2n_conv._crc_compute(start+seqid+id+timestamp+payload)
     end = int.to_bytes(0x0D0A, length=2)
     dummy_packet = start+seqid+id+timestamp+payload+crc+end
     print((dummy_packet))
