@@ -54,41 +54,41 @@ export default function Dashboard() {
         socket.on("send_data_ba", (data) => {
             console.log(data);
             console.log("Received barometer data!");
-            updateElapsedFromTimestamp(data.timestamp);
-            setBaro(baro => [...baro, data.payload, 0]);
+            updateElapsedFromTimestamp(data[data.length - 1].timestamp);
+            setBaro(baro => [...baro, ...data.map(packet => packet.payload), 0]);
             setBaro(baro => baro.slice(-11, -1));
         });
 
         socket.on("send_data_al", (data) => {
             console.log(data);
             console.log("Received accel low data!");
-            updateElapsedFromTimestamp(data.timestamp);
-            setAccLo(accLo => [...accLo, data.payload, 0]);
+            updateElapsedFromTimestamp(data[data.length - 1].timestamp);
+            setAccLo(accLo => [...accLo, ...data.map(packet => packet.payload), 0]);
             setAccLo(accLo => accLo.slice(-11, -1));
         });
 
         socket.on("send_data_ah", (data) => {
             console.log(data);
             console.log("Received accel high data!");
-            updateElapsedFromTimestamp(data.timestamp);
-            setAccHi(accHi => [...accHi, data.payload, 0]);
+            updateElapsedFromTimestamp(data[data.length - 1].timestamp);
+            setAccHi(accHi => [...accHi, ...data.map(packet => packet.payload), 0]);
             setAccHi(accHi => accHi.slice(-11, -1));
         });
 
         socket.on("send_data_ro", (data) => {
             console.log(data);
             console.log("Received gyro data!");
-            updateElapsedFromTimestamp(data.timestamp);
-            setGyro(gyro => [...gyro, [data.payload.X, data.payload.Y, data.payload.Z], 0]);
+            updateElapsedFromTimestamp(data[data.length - 1].timestamp);
+            setGyro(gyro => [...gyro, ...data.map(packet => [packet.payload.X, packet.payload.Y, packet.payload.Z]), 0]);
             setGyro(gyro => gyro.slice(-11, -1));
         });
 
         socket.on("send_data_IMU", (data) => {
             console.log(data);
             console.log("Received data!");
-            updateElapsedFromTimestamp(data.timestamp);
-            setIMU(IMU => [...IMU, ...data.data, 0]);
-            setIMU(IMU => IMU.slice(-6, -1));
+            updateElapsedFromTimestamp(data[data.length - 1].timestamp);
+            setIMU(IMU => [...IMU, ...data.map(packet => packet.payload), 0]);
+            setIMU(IMU => IMU.slice(-11, -1));
         });
 
         socket.on("disconnect", (data) => {

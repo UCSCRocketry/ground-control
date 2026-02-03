@@ -42,7 +42,7 @@ def update_data():
         socketio.sleep(0.1)
         #print("Updated data!")
         #generate(ser)
-        data = ser2Num.get_packets(ser, max_packets=20)
+        data = ser2Num.get_packets(ser, max_packets=-1)
         if len(data) > 0:
             #utils.packetlist_to_csv(DATAFILE, ('seqid', 'id', 'timestamp', 'payload'), data)
             ser2Num.store_packets(data)
@@ -55,17 +55,53 @@ def send_data(event):
     #count = 0
     try:
         while event.is_set():
-            socketio.sleep(0.05)
+            socketio.sleep(0.250)
+            send_data_ba = []
+            send_data_ah = []
+            send_data_al = []
+            send_data_ro = []
             while len(queue) > 0:
                 #count += 1
-                print('Sending data...')
-                with api.test_request_context('/'):
-                    packet = queue.pop()
-                    print(f'PACKET: {packet}')
-                    state[packet['id']].append(packet)
-                    state[packet['id']] = state[packet['id']][-10:]
+                packet = queue.pop()
+                match packet['id']:
+                    case 'ba':
+                        send_data_ba.append(packet)
+                    case 'ah':
+                        send_data_ah.append(packet)
+                    case 'al':
+                        send_data_al.append(packet)
+                    case 'ro':
+                        send_data_ro.append(packet)
+                    case _:
+                        print('Unknown sensor id')
+            
+            # Update state and limit to last 10 packets
+            state['ba'].extend(send_data_ba)
+            state['ba'] = state['ba'][-10:]
+            state['ah'].extend(send_data_ah)
+            state['ah'] = state['ah'][-10:]
+            state['al'].extend(send_data_al)
+            state['al'] = state['al'][-10:]
+            state['ro'].extend(send_data_ro)
+            state['ro'] = state['ro'][-10:]
 
-                    socketio.emit(f'send_data_{packet['id']}', packet)
+            with api.test_request_context('/'):
+                num_ba = len(send_data_ba)
+                num_ah = len(send_data_ah)
+                num_al = len(send_data_al)
+                num_ro = len(send_data_ro)
+                if num_ba > 0:
+                    print(f'Sending {num_ba} ba packets...')
+                    socketio.emit(f'send_data_ba', send_data_ba)
+                if num_ah > 0:
+                    print(f'Sending {num_ah} ah packets...')
+                    socketio.emit(f'send_data_ah', send_data_ah)
+                if num_al > 0:
+                    print(f'Sending {num_al} al packets...')
+                    socketio.emit(f'send_data_al', send_data_al)
+                if num_ro > 0:
+                    print(f'Sending {num_ro} ro packets...')
+                    socketio.emit(f'send_data_ro', send_data_ro)
 
     finally:
         event.clear()
