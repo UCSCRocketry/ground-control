@@ -3,6 +3,9 @@ import { io } from "socket.io-client";
 import Gauge from '../components/Gauge';
 import CustomLineGraph from '../components/CustomLineGraph';
 import '../styles/Dashboard.css';
+import  ArmButton from '../components/ArmButton'
+import DisarmButton from '../components/DisarmButton'
+import StatusCheckButton from '../components/StatusCheckButton'
 
 // Small reusable wrapper: adds a Show/Hide toggle for any chart/gauge
 function TogglePanel({ id, label, isOpen, onToggle, children }) {
@@ -282,6 +285,11 @@ export default function Dashboard() {
   return (
     <main>
       <h1 className="dashboard-title">Dashboard</h1>
+      <div className="dashboard-controls">
+        <StatusCheckButton />
+        <ArmButton />
+        <DisarmButton />
+      </div>
 
       <div className="main-dashboard-layout">
         {/* Left side - line graphs */}
