@@ -24,6 +24,7 @@ state = {"ba": [],      # barometer
          "ah": [],      # high-g accel
          "al": [],      # low-g accel
          "ro": []}      # gyroscope
+gcs_seqid = 1
 
 ser2Num = Serial2Num()
 
@@ -112,6 +113,33 @@ def send_state():
     for key in state:
         for packet in state[key]:
             socketio.emit(f'send_data_{key}', packet)
+
+@socketio.on('send_ping')
+def send_ping():
+    global ser, gcs_seqid
+    packet = 0x24.to_bytes(length=1) + gcs_seqid.to_bytes(length=4) + 0x7072.to_bytes(length=2) + 0x0.to_bytes(length=4) + 0x0.to_bytes(length=17)
+    gcs_seqid += 1
+    crc = Serial2Num._crc_compute(packet)
+    packet += crc + 0x0D0A.to_bytes(length=2)
+    ser.write(packet)
+
+@socketio.on('send_arm')
+def send_arm():
+    global ser, gcs_seqid
+    packet = 0x24.to_bytes(length=1) + gcs_seqid.to_bytes(length=4) + 0x736D.to_bytes(length=2) + 0x0.to_bytes(length=4) + 0x1.to_bytes(length=17)
+    gcs_seqid += 1
+    crc = Serial2Num._crc_compute(packet)
+    packet += crc + 0x0D0A.to_bytes(length=2)
+    ser.write(packet)
+
+@socketio.on('send_disarm')
+def send_disarm():
+    global ser, gcs_seqid
+    packet = 0x24.to_bytes(length=1) + gcs_seqid.to_bytes(length=4) + 0x736D.to_bytes(length=2) + 0x0.to_bytes(length=4) + 0x0.to_bytes(length=17)
+    gcs_seqid += 1
+    crc = Serial2Num._crc_compute(packet)
+    packet += crc + 0x0D0A.to_bytes(length=2)
+    ser.write(packet)
 
 # inits threads on first connect and maintains connected_users
 @socketio.on("connect")
