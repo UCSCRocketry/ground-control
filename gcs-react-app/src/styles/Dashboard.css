@@ -148,3 +148,19 @@
 .status-button {
     background-color: #007bff;
 }
+
+.toggle-controls-button {
+  padding: 10px 20px;
+  margin-bottom: 20px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background-color: #444;
+  color: white;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.toggle-controls-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+}

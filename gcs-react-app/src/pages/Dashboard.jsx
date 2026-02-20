@@ -95,6 +95,7 @@ export default function Dashboard() {
 
   // Collapsed/open state for each panel
   // true = open, false = collapsed
+  const [showControls, setShowControls] = useState(true);
   const [openPanels, setOpenPanels] = useState(() => ({
     // graphs
     graph_altitude: true,
@@ -285,11 +286,20 @@ export default function Dashboard() {
   return (
     <main>
       <h1 className="dashboard-title">Dashboard</h1>
-      <div className="dashboard-controls">
-        <StatusCheckButton />
-        <ArmButton />
-        <DisarmButton />
-      </div>
+
+      <button
+        className="toggle-controls-button"
+        onClick={() => setShowControls(prev => !prev)}>
+        {showControls ? "Hide Controls" : "Show Controls"}
+      </button>
+
+      {showControls && (
+        <div className="dashboard-controls">
+          <StatusCheckButton />
+          <ArmButton />
+          <DisarmButton />
+        </div>
+      )}
 
       <div className="main-dashboard-layout">
         {/* Left side - line graphs */}
