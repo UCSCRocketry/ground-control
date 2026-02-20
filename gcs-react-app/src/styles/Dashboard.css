@@ -3,58 +3,78 @@
     display: flex;
     gap: 1.5rem;
     padding: 1rem;
-    min-height: 100vh;
+    /* Removed min-height: 100vh to prevent forced vertical stretching */
 }
 
-/* Left section for other graphs */
+/* ========================= */
+/* Left section - Line Graphs */
+/* ========================= */
+
 .graphs-section {
-    flex: 2.6;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    /* grid-template-columns: repeat(2, 1fr); */
-    grid-template-rows: repeat(4, minmax(100px, 1fr));
-    gap: 1rem;
-    min-width: 400px;
-    padding: 1rem 1rem;
-
+  flex: 2.6;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)); /* FORCE 2 columns */
+  grid-auto-rows: auto;
+  align-content: start;
+  gap: 1rem;
+  padding: 1rem;
 }
 
-/* Right section for gauges */
+.graphs-section > * {
+  min-width: 0;     /* IMPORTANT */
+  width: 100%;
+  height: auto;
+  grid-column: auto; /* IMPORTANT: don't span both columns */
+}
+
+
+/* ========================= */
+/* Right section - Gauges */
+/* ========================= */
+
 .dashboard-container {
     flex: 2;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+
+    /* FIX: rows auto-size */
+    grid-auto-rows: auto;
+
+    /* FIX: pack at top */
+    align-content: start;
+
     column-gap: 1rem;
     row-gap: 0.5rem;
-    padding: 1rem 1rem;
+    padding: 1rem;
 }
-
 
 .dashboard-container > * {
     width: 100%;
-    height: 100%;
-    min-height: 300px; 
+
+    /* FIX: allow collapse */
+    height: auto;
+    min-height: 0;
 }
 
-.graphs-section > * {
-    width: 100%;
-    height: 100%;
-    min-height: 300px;
-    grid-column: span 2;
-}
+/* ========================= */
+/* Gauge Styling */
+/* ========================= */
 
 #gauge {
-    background-image: url('../assets/starCluster.jpg');
-    border-radius: 8px; /*rounds edges*/
-    overflow: hidden; 
+    border-radius: 8px;
+    overflow: hidden;
     transition: transform 0.2s;
     cursor: pointer;
     padding: 0.4cm;
     height: 18rem;
     max-height: 18rem;
-    display: flex; 
+    display: flex;
     flex-direction: column;
 }
+
+/* ========================= */
+/* Line Graph Styling */
+/* ========================= */
 
 #lineGraph {
     background-image: url('../assets/starCluster.jpg');
@@ -62,17 +82,17 @@
     overflow: hidden;
     transition: transform 0.2s;
     cursor: pointer;
-    padding: 0.4cm; 
+    padding: 0.4cm;
     color: white;
     height: 18rem;
     max-height: 18rem;
-    display: flex; 
+    display: flex;
     flex-direction: column;
 }
 
-#gauge:hover, #lineGraph:hover {
+#gauge:hover,
+#lineGraph:hover {
     transform: translateY(-4px);
-    transition: transform 0.2s;
 }
 
 #gauge h1 {
@@ -91,18 +111,40 @@
     line-height: 2.5rem;
 }
 
-.dashboard-container p {
-    font-size: 1rem;
-    padding-left: 1.5rem;
-    color: black;
-    padding-top: 1rem;
+/* ========================= */
+/* Dashboard Control Buttons */
+/* ========================= */
+
+.dashboard-controls {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 20px 0 30px 0;
 }
 
-.dashboard-container .edit {
-    font-size: 1.8rem;
-    color: black;
-    margin-top: 0;
-    padding-top: 0rem;
-    padding-left: 14rem;
+.control-button {
+    padding: 14px 28px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    color: white;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+.control-button:hover {
+    transform: scale(1.07);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+.arm-button {
+    background-color: #28a745;
+}
+
+.disarm-button {
+    background-color: #dc3545;
+}
+
+.status-button {
+    background-color: #007bff;
+}

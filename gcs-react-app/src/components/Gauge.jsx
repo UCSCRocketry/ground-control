@@ -12,9 +12,15 @@ export default function Gauge({ value, min, max, title }) {
 
     const data = [
         {
-            domain: { x: [0, 1], y: [0, 1] },
+            domain: { x: [0, 1], y: [0.15, 0.9] },
             value: value,
-            title: { text: title },
+            title: {
+              text: title,
+              y: 0.95,
+              yanchor: 'top',
+              font: { size: 18 },
+              align: 'center'
+            },
             type: 'indicator',
             mode: 'gauge+number',
             gauge: {
@@ -35,7 +41,7 @@ export default function Gauge({ value, min, max, title }) {
     // const layout = { width: 800, height: 600, margin: { t: 0, b: 0 }, datarevision: value };
     const layout = { 
         autosize: true,
-        margin: { t: 20, b: 0, l: 25, r:40 }, 
+        margin: { t: 30, b: 10, l: 25, r:25 }, 
         datarevision: value,
         paper_bgcolor: 'white',
     };
