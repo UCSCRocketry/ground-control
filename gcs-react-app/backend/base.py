@@ -35,8 +35,9 @@ connected_users = 0
 # - change update_data() to start on backend start, rather than first user connect
 # - clean up backend structure (https://hackersandslackers.com/flask-application-factory/)
 # - customize callsign and send callsign out every so often
+# - calculate packet loss
 
-# generates randomized data from a serialport every 2 seconds
+# get new packets from serialport and update internal queue
 def update_data():
     global ser, queue
     while True:
