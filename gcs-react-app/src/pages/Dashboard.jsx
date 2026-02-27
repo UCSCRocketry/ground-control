@@ -63,7 +63,7 @@ export default function Dashboard() {
             console.log(data);
             console.log("Received accel low data!");
             updateElapsedFromTimestamp(data[data.length - 1].timestamp);
-            setAccLo(accLo => [...accLo, ...data.map(packet => packet.payload), 0]);
+            setAccLo(accLo => [...accLo, ...data.map(packet => packet.payload.Y), 0]);
             setAccLo(accLo => accLo.slice(-11, -1));
         });
 
@@ -71,7 +71,7 @@ export default function Dashboard() {
             console.log(data);
             console.log("Received accel high data!");
             updateElapsedFromTimestamp(data[data.length - 1].timestamp);
-            setAccHi(accHi => [...accHi, ...data.map(packet => packet.payload), 0]);
+            setAccHi(accHi => [...accHi, ...data.map(packet => packet.payload.Y), 0]);
             setAccHi(accHi => accHi.slice(-11, -1));
         });
 
