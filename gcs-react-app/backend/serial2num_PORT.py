@@ -181,7 +181,12 @@ class Serial2Num():
 
                     packetdict['payload'] = (digit + (fp/10)) * (10**exp)
 
-                case 'al' | 'ah' | _:
+                case 'al' | 'ah':
+                    packetdict['payload'] = {'X': int.from_bytes(packet[11:16]),
+                                             'Y': int.from_bytes(packet[16:22]),
+                                             'Z': int.from_bytes(packet[22:28])}
+                    #print(f'Y:{packet[16:22]}')
+                case 'sc' | _:
                     packetdict['payload'] = int.from_bytes(packet[11:28])
 
             if packet[30:32] != self.END_BYTES:
