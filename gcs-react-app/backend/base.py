@@ -24,6 +24,7 @@ state = {"ba": [],      # barometer
          "ah": [],      # high-g accel
          "al": [],      # low-g accel
          "ro": []}      # gyroscope
+gcs_seqid = 1
 
 ser2Num = Serial2Num()
 
@@ -34,15 +35,16 @@ connected_users = 0
 # - change update_data() to start on backend start, rather than first user connect
 # - clean up backend structure (https://hackersandslackers.com/flask-application-factory/)
 # - customize callsign and send callsign out every so often
+# - calculate packet loss
 
-# generates randomized data from a serialport every 2 seconds
+# get new packets from serialport and update internal queue
 def update_data():
     global ser, queue
     while True:
         socketio.sleep(0.1)
         #print("Updated data!")
         #generate(ser)
-        data = ser2Num.get_packets(ser, max_packets=20)
+        data = ser2Num.get_packets(ser, max_packets=-1)
         if len(data) > 0:
             #utils.packetlist_to_csv(DATAFILE, ('seqid', 'id', 'timestamp', 'payload'), data)
             ser2Num.store_packets(data)
@@ -55,17 +57,53 @@ def send_data(event):
     #count = 0
     try:
         while event.is_set():
-            socketio.sleep(0.05)
+            socketio.sleep(0.250)
+            send_data_ba = []
+            send_data_ah = []
+            send_data_al = []
+            send_data_ro = []
             while len(queue) > 0:
                 #count += 1
-                print('Sending data...')
-                with api.test_request_context('/'):
-                    packet = queue.pop()
-                    print(f'PACKET: {packet}')
-                    state[packet['id']].append(packet)
-                    state[packet['id']] = state[packet['id']][-10:]
+                packet = queue.pop()
+                match packet['id']:
+                    case 'ba':
+                        send_data_ba.append(packet)
+                    case 'ah':
+                        send_data_ah.append(packet)
+                    case 'al':
+                        send_data_al.append(packet)
+                    case 'ro':
+                        send_data_ro.append(packet)
+                    case _:
+                        print('Unknown sensor id')
+            
+            # Update state and limit to last 10 packets
+            state['ba'].extend(send_data_ba)
+            state['ba'] = state['ba'][-10:]
+            state['ah'].extend(send_data_ah)
+            state['ah'] = state['ah'][-10:]
+            state['al'].extend(send_data_al)
+            state['al'] = state['al'][-10:]
+            state['ro'].extend(send_data_ro)
+            state['ro'] = state['ro'][-10:]
 
-                    socketio.emit(f'send_data_{packet['id']}', packet)
+            with api.test_request_context('/'):
+                num_ba = len(send_data_ba)
+                num_ah = len(send_data_ah)
+                num_al = len(send_data_al)
+                num_ro = len(send_data_ro)
+                if num_ba > 0:
+                    print(f'Sending {num_ba} ba packets...')
+                    socketio.emit(f'send_data_ba', send_data_ba)
+                if num_ah > 0:
+                    print(f'Sending {num_ah} ah packets...')
+                    socketio.emit(f'send_data_ah', send_data_ah)
+                if num_al > 0:
+                    print(f'Sending {num_al} al packets...')
+                    socketio.emit(f'send_data_al', send_data_al)
+                if num_ro > 0:
+                    print(f'Sending {num_ro} ro packets...')
+                    socketio.emit(f'send_data_ro', send_data_ro)
 
     finally:
         event.clear()
@@ -76,6 +114,33 @@ def send_state():
     for key in state:
         for packet in state[key]:
             socketio.emit(f'send_data_{key}', packet)
+
+@socketio.on('send_ping')
+def send_ping():
+    global ser, gcs_seqid
+    packet = 0x24.to_bytes(length=1) + gcs_seqid.to_bytes(length=4) + 0x7072.to_bytes(length=2) + 0x0.to_bytes(length=4) + 0x0.to_bytes(length=17)
+    gcs_seqid += 1
+    crc = Serial2Num._crc_compute(packet)
+    packet += crc + 0x0D0A.to_bytes(length=2)
+    ser.write(packet)
+
+@socketio.on('send_arm')
+def send_arm():
+    global ser, gcs_seqid
+    packet = 0x24.to_bytes(length=1) + gcs_seqid.to_bytes(length=4) + 0x736D.to_bytes(length=2) + 0x0.to_bytes(length=4) + 0x1.to_bytes(length=17)
+    gcs_seqid += 1
+    crc = Serial2Num._crc_compute(packet)
+    packet += crc + 0x0D0A.to_bytes(length=2)
+    ser.write(packet)
+
+@socketio.on('send_disarm')
+def send_disarm():
+    global ser, gcs_seqid
+    packet = 0x24.to_bytes(length=1) + gcs_seqid.to_bytes(length=4) + 0x736D.to_bytes(length=2) + 0x0.to_bytes(length=4) + 0x0.to_bytes(length=17)
+    gcs_seqid += 1
+    crc = Serial2Num._crc_compute(packet)
+    packet += crc + 0x0D0A.to_bytes(length=2)
+    ser.write(packet)
 
 # inits threads on first connect and maintains connected_users
 @socketio.on("connect")
