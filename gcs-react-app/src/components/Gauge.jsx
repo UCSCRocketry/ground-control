@@ -23,8 +23,8 @@ const Gauge = ({ value, min, max, title }) => {
     },
   ];
 
-  // datarevision makes the component dynamic 
-  const layout = { width: 800, height: 600, margin: { t: 0, b: 0 }, datarevision: value };
+  // datarevision makes the component dynamic
+  const layout = { width: 180, height: 150, margin: { t: 35, b: 0, l: 5, r: 5 }, datarevision: value };
 
   return <Plot data={data} layout={layout}/>;
 };

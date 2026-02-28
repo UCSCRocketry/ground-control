@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import About from "./pages/About";
+import CesiumMap from "./components/Cesium";
 import Login from "./pages/Login"
 import Fetch from "./pages/Fetch";
 import Launch from "./pages/LaunchPage";
@@ -23,6 +24,7 @@ function App() {
         <Route path="/fetch" element={<Fetch />} />
         <Route path="/chart" element={<Chart />} />
         <Route path="/launch" element={<Launch />} />
+        <Route path="/cesium" element={<CesiumMap />} />
         <Route path="/graphsBack" element={<GraphsToBackend />} />
 
 
