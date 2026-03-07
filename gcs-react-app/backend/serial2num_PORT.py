@@ -99,6 +99,10 @@ class Serial2Num():
                 print('serial2json: Received bad packet.')
                 return {'error': 'Received bad packet'}
             
+            if packet[30:32] != self.END_BYTES:
+                print('serial2json: Packet missing stop bytes.')
+                return {'error': 'Packet missing stop bytes'}
+            
             res = self._crc_validate(data=packet[0:28], crc=packet[28:30])
             if not res:
                 print('serial2json: Packet failed CRC check.')
