@@ -164,10 +164,12 @@ class Serial2Num():
         try:
             packetdict['start'] = packet[0:1].decode('ascii')
             packetdict['seqid'] = int.from_bytes(packet[1:5])
+            #packetdict['seqid'] = int(packet[1:5].decode('ascii'))
             packetdict['id'] = packet[5:7].decode('ascii')
             if packetdict['id'] not in self.SENSOR_IDS:
                 raise ValueError('Invalid sensor ID')
             packetdict['timestamp'] = int.from_bytes(packet[7:11])
+            #packetdict['timestamp'] = int(packet[7:11].decode('ascii'))
 
             # parse packet payload (depends on sensor id)
             match packetdict['id']:
@@ -187,15 +189,17 @@ class Serial2Num():
                     packetdict['payload'] = (digit + (fp/10)) * (10**exp)
 
                 case 'al' | 'ah':
-                    packetdict['payload'] = {'X': int.from_bytes(packet[11:16]),
-                                             'Y': int.from_bytes(packet[16:22]),
-                                             'Z': int.from_bytes(packet[22:28])}
+                    #packetdict['payload'] = {'X': int.from_bytes(packet[11:16]),
+                                             #'Y': int.from_bytes(packet[16:22], signed=True),
+                                             #'Z': int.from_bytes(packet[22:28])}
+                    packetdict['payload'] = {'X': int(packet[11:16].decode('ascii')) / 1000.0,
+                                             'Y': int(packet[16:22].decode('ascii')) / 1000.0,
+                                             'Z': int(packet[22:28].decode('ascii')) / 1000.0}
                     #print(f'Y:{packet[16:22]}')
                 case 'sc' | _:
-                    packetdict['payload'] = int.from_bytes(packet[11:28])
-
-            if packet[30:32] != self.END_BYTES:
-                raise ValueError('Missing end bytes')
+                    #print(packet[11:28])
+                    #packetdict['payload'] = int.from_bytes(packet[11:28])
+                    packetdict['payload'] = int(packet[11:28].decode('ascii'))
             
             return packetdict
             
