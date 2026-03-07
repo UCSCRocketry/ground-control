@@ -17,7 +17,7 @@ class Serialport:
         print(f'Initialized serial port {self.ser.name}')
         
     def write(self, bytes_to_send: bytes):
-        print(f'{self.ser.name} Writing: {bytes_to_send}')
+        #print(f'{self.ser.name} Writing: {bytes_to_send}')
         self.ser.write(bytes_to_send)
 
     def read(self, num_bytes=1):
