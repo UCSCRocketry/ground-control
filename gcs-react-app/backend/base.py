@@ -74,8 +74,10 @@ def send_data(event):
                         send_data_al.append(packet)
                     case 'ro':
                         send_data_ro.append(packet)
+                    case 'sc':
+                        print(f"Received sc! Payload: {packet['payload']}")
                     case _:
-                        print('Unknown sensor id')
+                        print(f"Unknown sensor id: {packet['id']}")
             
             # Update state and limit to last 10 packets
             state['ba'].extend(send_data_ba)
@@ -120,27 +122,33 @@ def send_ping():
     global ser, gcs_seqid
     packet = 0x24.to_bytes(length=1) + gcs_seqid.to_bytes(length=4) + 0x7072.to_bytes(length=2) + 0x0.to_bytes(length=4) + 0x0.to_bytes(length=17)
     gcs_seqid += 1
-    crc = Serial2Num._crc_compute(packet)
+    crc = ser2Num._crc_compute(packet)
     packet += crc + 0x0D0A.to_bytes(length=2)
     ser.write(packet)
+    print("Sending Ping!")
+    print(packet)
 
 @socketio.on('send_arm')
 def send_arm():
     global ser, gcs_seqid
-    packet = 0x24.to_bytes(length=1) + gcs_seqid.to_bytes(length=4) + 0x736D.to_bytes(length=2) + 0x0.to_bytes(length=4) + 0x1.to_bytes(length=17)
+    packet = 0x24.to_bytes(length=1) + gcs_seqid.to_bytes(length=4) + 0x736D.to_bytes(length=2) + 0x0.to_bytes(length=4) + 0x1.to_bytes(length=1) + 0x0.to_bytes(length=16)
     gcs_seqid += 1
-    crc = Serial2Num._crc_compute(packet)
+    crc = ser2Num._crc_compute(packet)
     packet += crc + 0x0D0A.to_bytes(length=2)
     ser.write(packet)
+    print("Sending Arm!")
+    print(packet)
 
 @socketio.on('send_disarm')
 def send_disarm():
     global ser, gcs_seqid
     packet = 0x24.to_bytes(length=1) + gcs_seqid.to_bytes(length=4) + 0x736D.to_bytes(length=2) + 0x0.to_bytes(length=4) + 0x0.to_bytes(length=17)
     gcs_seqid += 1
-    crc = Serial2Num._crc_compute(packet)
+    crc = ser2Num._crc_compute(packet)
     packet += crc + 0x0D0A.to_bytes(length=2)
     ser.write(packet)
+    print("Sending Disarm!")
+    print(packet)
 
 # inits threads on first connect and maintains connected_users
 @socketio.on("connect")
@@ -154,7 +162,7 @@ def connect_msg():
     send_state()
 
     if thread_update is None:
-        ser = Serialport('COM1', baud=57600)
+        ser = Serialport('COM5', baud=115200, read_timeout=0.1)
         #ser = MockSerialport()
         thread_update = socketio.start_background_task(update_data)
 

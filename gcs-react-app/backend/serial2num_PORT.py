@@ -9,7 +9,8 @@ class Serial2Num():
     def __init__(
         self,
         storePackets=True,
-        header=('seqid', 'id', 'timestamp', 'payload')
+        header=('seqid', 'id', 'timestamp', 'payload'),
+        data_dir='flight_data'
     ):
         self.START_BYTE_MIN = 0x21.to_bytes(length=1)
         self.START_BYTE_MAX = 0x24.to_bytes(length=1)
@@ -19,7 +20,7 @@ class Serial2Num():
 
         if storePackets:
             self.dt = datetime.datetime
-            self.dfilename = self.dt.now().strftime('run_%Y-%m-%dT%H%M.csv')
+            self.dfilename = self.dt.now().strftime(f"{data_dir}/run_%Y-%m-%dT%H%M.csv")
             self.header = header
 
             with open(self.dfilename, 'w', newline='') as f:
@@ -57,6 +58,7 @@ class Serial2Num():
                 break
             elif packet.get('exit') != None:
                 print(f'get_packets(): Discarded message')
+                continue
             elif packet.get('error') != None:
                 print(f'get_packets(): Error: {packet}')
                 continue
@@ -92,11 +94,14 @@ class Serial2Num():
 
             packet = start_byte + ser.read(31)
 
-            # TODO: handle reading bytes while packet is being transmitted
-            # TODO?: validate correctness of stop bytes
-            if not packet or len(packet) != 32:
+            # TODO: handle reading bytes while packet is being transmitted (currently use read_timeout, probably fine)
+            if (not packet) or (len(packet) != 32):
                 print('serial2json: Received bad packet.')
                 return {'error': 'Received bad packet'}
+            
+            if packet[30:32] != self.END_BYTES:
+                print('serial2json: Packet missing stop bytes.')
+                return {'error': 'Packet missing stop bytes'}
             
             res = self._crc_validate(data=packet[0:28], crc=packet[28:30])
             if not res:
@@ -159,10 +164,12 @@ class Serial2Num():
         try:
             packetdict['start'] = packet[0:1].decode('ascii')
             packetdict['seqid'] = int.from_bytes(packet[1:5])
+            #packetdict['seqid'] = int(packet[1:5].decode('ascii'))
             packetdict['id'] = packet[5:7].decode('ascii')
             if packetdict['id'] not in self.SENSOR_IDS:
                 raise ValueError('Invalid sensor ID')
             packetdict['timestamp'] = int.from_bytes(packet[7:11])
+            #packetdict['timestamp'] = int(packet[7:11].decode('ascii'))
 
             # parse packet payload (depends on sensor id)
             match packetdict['id']:
@@ -182,15 +189,17 @@ class Serial2Num():
                     packetdict['payload'] = (digit + (fp/10)) * (10**exp)
 
                 case 'al' | 'ah':
-                    packetdict['payload'] = {'X': int.from_bytes(packet[11:16]),
-                                             'Y': int.from_bytes(packet[16:22]),
-                                             'Z': int.from_bytes(packet[22:28])}
+                    #packetdict['payload'] = {'X': int.from_bytes(packet[11:16]),
+                                             #'Y': int.from_bytes(packet[16:22], signed=True),
+                                             #'Z': int.from_bytes(packet[22:28])}
+                    packetdict['payload'] = {'X': int(packet[11:16].decode('ascii')) / 1000.0,
+                                             'Y': int(packet[16:22].decode('ascii')) / 1000.0,
+                                             'Z': int(packet[22:28].decode('ascii')) / 1000.0}
                     #print(f'Y:{packet[16:22]}')
                 case 'sc' | _:
-                    packetdict['payload'] = int.from_bytes(packet[11:28])
-
-            if packet[30:32] != self.END_BYTES:
-                raise ValueError('Missing end bytes')
+                    #print(packet[11:28])
+                    #packetdict['payload'] = int.from_bytes(packet[11:28])
+                    packetdict['payload'] = int(packet[11:28].decode('ascii'))
             
             return packetdict
             
