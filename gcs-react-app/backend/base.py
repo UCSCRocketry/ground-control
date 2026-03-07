@@ -121,7 +121,7 @@ def send_state():
 def send_ping():
     global ser, gcs_seqid
     packet = 0x24.to_bytes(length=1) + gcs_seqid.to_bytes(length=4) + 0x7072.to_bytes(length=2) + 0x0.to_bytes(length=4) + 0x0.to_bytes(length=17)
-    gcs_seqid += 1
+    #gcs_seqid += 1
     crc = ser2Num._crc_compute(packet)
     packet += crc + 0x0D0A.to_bytes(length=2)
     ser.write(packet)
@@ -132,7 +132,7 @@ def send_ping():
 def send_arm():
     global ser, gcs_seqid
     packet = 0x24.to_bytes(length=1) + gcs_seqid.to_bytes(length=4) + 0x736D.to_bytes(length=2) + 0x0.to_bytes(length=4) + 0x1.to_bytes(length=1) + 0x0.to_bytes(length=16)
-    gcs_seqid += 1
+    #gcs_seqid += 1
     crc = ser2Num._crc_compute(packet)
     packet += crc + 0x0D0A.to_bytes(length=2)
     ser.write(packet)
@@ -143,7 +143,7 @@ def send_arm():
 def send_disarm():
     global ser, gcs_seqid
     packet = 0x24.to_bytes(length=1) + gcs_seqid.to_bytes(length=4) + 0x736D.to_bytes(length=2) + 0x0.to_bytes(length=4) + 0x0.to_bytes(length=17)
-    gcs_seqid += 1
+    #gcs_seqid += 1
     crc = ser2Num._crc_compute(packet)
     packet += crc + 0x0D0A.to_bytes(length=2)
     ser.write(packet)
