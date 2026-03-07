@@ -93,9 +93,8 @@ class Serial2Num():
 
             packet = start_byte + ser.read(31)
 
-            # TODO: handle reading bytes while packet is being transmitted
-            # TODO?: validate correctness of stop bytes
-            if not packet or len(packet) != 32:
+            # TODO: handle reading bytes while packet is being transmitted (currently use read_timeout, probably fine)
+            if (not packet) or (len(packet) != 32):
                 print('serial2json: Received bad packet.')
                 return {'error': 'Received bad packet'}
             
