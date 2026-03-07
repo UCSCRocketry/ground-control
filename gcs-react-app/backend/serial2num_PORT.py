@@ -9,7 +9,8 @@ class Serial2Num():
     def __init__(
         self,
         storePackets=True,
-        header=('seqid', 'id', 'timestamp', 'payload')
+        header=('seqid', 'id', 'timestamp', 'payload'),
+        data_dir='flight_data'
     ):
         self.START_BYTE_MIN = 0x21.to_bytes(length=1)
         self.START_BYTE_MAX = 0x24.to_bytes(length=1)
@@ -19,7 +20,7 @@ class Serial2Num():
 
         if storePackets:
             self.dt = datetime.datetime
-            self.dfilename = self.dt.now().strftime('run_%Y-%m-%dT%H%M.csv')
+            self.dfilename = self.dt.now().strftime(f"{data_dir}/run_%Y-%m-%dT%H%M.csv")
             self.header = header
 
             with open(self.dfilename, 'w', newline='') as f:
