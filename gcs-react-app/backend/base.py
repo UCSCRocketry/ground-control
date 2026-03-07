@@ -162,7 +162,7 @@ def connect_msg():
     send_state()
 
     if thread_update is None:
-        ser = Serialport('COM1', baud=57600)
+        ser = Serialport('COM5', baud=115200, read_timeout=0.1)
         #ser = MockSerialport()
         thread_update = socketio.start_background_task(update_data)
 
