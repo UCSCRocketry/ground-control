@@ -23,9 +23,9 @@ class Serialport:
     def read(self, num_bytes=1):
         bytes_read = self.ser.read(num_bytes)
         if bytes_read == b'':
-            print(f'{self.ser.name} Received: None')
+            #print(f'{self.ser.name} Received: None')
             return None
-        print(f'{self.ser.name} Received: {bytes_read}')
+        #print(f'{self.ser.name} Received: {bytes_read}')
         return bytes_read
 
     def list(self):
