@@ -25,6 +25,10 @@ There will likely be vulnerabilities in the installation. DO NOT WORRY ABOUT THE
 
     cd gcs-react-app/backend
 
+### 3. ENSURE YOU ARE USING PYTHON 3.12
+
+Some dependencies break when using Python 3.13+, all versions of 3.12 should work (though if you want to be safe, just install Python 3.12.3).
+
 ### 3. You may want to create a virtual python environment to separate packages and versions.
 
 Interpreter names may not match up to the ones listed below (e.g. "python" instead of "py")
