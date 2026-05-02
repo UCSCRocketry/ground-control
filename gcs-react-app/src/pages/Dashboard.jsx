@@ -93,6 +93,7 @@ export default function Dashboard() {
   const [startTimestamp, setStartTimestamp] = useState(null);
   const [lastTimestamp, setLastTimestamp] = useState(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [packetLoss, setPacketLoss] = useState(0)
 
   // Collapsed/open state for each panel
   // true = open, false = collapsed
@@ -188,6 +189,12 @@ export default function Dashboard() {
       updateElapsedFromTimestamp(data[data.length - 1].timestamp);
       setIMU(IMU => [...IMU, ...data.map(packet => packet.payload), 0]);
       setIMU(IMU => IMU.slice(-6, -1));
+    });
+
+    socket.on("send_data_ploss", (data) => {
+      console.log("Received packet loss data!");
+      console.log(data)
+      setPacketLoss(data * 100)
     });
 
     socket.on("disconnect", (data) => {
@@ -440,11 +447,11 @@ export default function Dashboard() {
 
           <TogglePanel
             id="gauge_packet"
-            label="WIP: Packet Loss (Gauge)"
+            label="Packet Loss % (Gauge)"
             isOpen={openPanels.gauge_packet}
             onToggle={togglePanel}
           >
-            <Gauge value={latestVal} min={0} max={100} title="WIP: Packet Loss" />
+            <Gauge value={packetLoss} min={0} max={100} title="Packet Loss" />
           </TogglePanel>
         </div>
       </div>

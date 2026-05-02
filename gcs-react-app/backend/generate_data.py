@@ -51,12 +51,13 @@ def generate(ser):
                 payload = last_al.to_bytes(length=17)
         
         packet = bytes()
-        packet += seqid.to_bytes(length=4) + sensorid + timestamp.to_bytes(length=4) + payload
-        crc = ser2Num._crc_encode(packet)
-
         start = 0x21.to_bytes(length=1)
+        packet += start + seqid.to_bytes(length=4) + sensorid + timestamp.to_bytes(length=4) + payload
+        crc = ser2Num._crc_compute(packet)
+        
+
         end = 0x0D0A.to_bytes(length=2)
 
-        packet = start + packet + crc + end
+        packet = packet + crc + end
         ser.write(packet)
         # print(f'Writing: seqid: {seqid}, id: {sensorid}, timestamp: {timestamp}, payload: {payload}')
