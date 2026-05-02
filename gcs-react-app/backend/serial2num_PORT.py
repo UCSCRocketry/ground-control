@@ -86,7 +86,7 @@ class Serial2Num():
         try:
             start_byte = ser.read(1)
             while start_byte != None and ((start_byte < self.START_BYTE_MIN) or (start_byte > self.START_BYTE_MAX)):
-                print('serial2json: Start byte not found.')
+                print(f'serial2json: Start byte not found: {start_byte}')
                 start_byte = ser.read(1)
             
             if start_byte == None:
@@ -163,7 +163,7 @@ class Serial2Num():
         packetdict = dict()
         try:
             packetdict['start'] = packet[0:1].decode('ascii')
-            packetdict['seqid'] = int.from_bytes(packet[1:5])
+            packetdict['seqid'] = int.from_bytes(packet[1:5], signed=False)
             #packetdict['seqid'] = int(packet[1:5].decode('ascii'))
             packetdict['id'] = packet[5:7].decode('ascii')
             if packetdict['id'] not in self.SENSOR_IDS:
@@ -179,7 +179,8 @@ class Serial2Num():
                                             'Z': int.from_bytes(packet[24:28])}
                     
                 case 'ba':
-                    bindata = int.from_bytes(packet[11:28])
+                    #bindata = int.from_bytes(packet[11:28])
+                    bindata = int(packet[11:28].decode('ascii'))
                     exp = bindata % 10
                     bindata -= exp
                     fp = bindata % 100
@@ -189,13 +190,17 @@ class Serial2Num():
                     packetdict['payload'] = (digit + (fp/10)) * (10**exp)
 
                 case 'al' | 'ah':
-                    #packetdict['payload'] = {'X': int.from_bytes(packet[11:16]),
-                                             #'Y': int.from_bytes(packet[16:22], signed=True),
-                                             #'Z': int.from_bytes(packet[22:28])}
+                    """
+                    packetdict['payload'] = {'X': int.from_bytes(packet[11:16]),
+                                             'Y': int.from_bytes(packet[16:22], signed=True),
+                                             'Z': int.from_bytes(packet[22:28])}
+                    """
                     packetdict['payload'] = {'X': int(packet[11:16].decode('ascii')) / 1000.0,
                                              'Y': int(packet[16:22].decode('ascii')) / 1000.0,
                                              'Z': int(packet[22:28].decode('ascii')) / 1000.0}
                     #print(f'Y:{packet[16:22]}')
+                case 'im':
+                    packetdict['payload'] = int(packet[11:28].decode('ascii'))
                 case 'sc' | _:
                     #print(packet[11:28])
                     #packetdict['payload'] = int.from_bytes(packet[11:28])
