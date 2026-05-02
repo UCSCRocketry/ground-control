@@ -25,6 +25,9 @@ state = {"ba": [],      # barometer
          "al": [],      # low-g accel
          "ro": []}      # gyroscope
 gcs_seqid = 1
+packets_read = 0
+packets_lost = 0
+last_seqid = -1
 
 ser2Num = Serial2Num()
 
@@ -36,20 +39,25 @@ connected_users = 0
 # - clean up backend structure (https://hackersandslackers.com/flask-application-factory/)
 # - customize callsign and send callsign out every so often
 # - calculate packet loss
+# - FIX: send_state() may broadcast to all clients, should emit to the connecting client only
 
 # get new packets from serialport and update internal queue
 def update_data():
-    global ser, queue
+    global ser, queue, packets_read, packets_lost, last_seqid
     while True:
         socketio.sleep(0.1)
         #print("Updated data!")
         #generate(ser)
         data = ser2Num.get_packets(ser, max_packets=-1)
+        data.sort(key=lambda packet : packet['seqid'])
         if len(data) > 0:
-            #utils.packetlist_to_csv(DATAFILE, ('seqid', 'id', 'timestamp', 'payload'), data)
             ser2Num.store_packets(data)
         for packet in data:
+            packets_lost += packet['seqid'] - last_seqid - 1
+            packets_read += 1
+            last_seqid = packet['seqid']
             queue.insert(0, packet)
+        #print(f'packets_lost / packets_read)
 
 # sends any data waiting in the queue to the frontend
 def send_data(event):
@@ -58,54 +66,57 @@ def send_data(event):
     try:
         while event.is_set():
             socketio.sleep(0.250)
-            send_data_ba = []
-            send_data_ah = []
-            send_data_al = []
-            send_data_ro = []
+            data = {
+                "ba": [],
+                "ah": [],
+                "al": [],
+                "ro": []
+            }
             while len(queue) > 0:
                 #count += 1
                 packet = queue.pop()
                 match packet['id']:
                     case 'ba':
-                        send_data_ba.append(packet)
+                        #send_data_ba.append(packet)
+                        data['ba'].append(packet)
                     case 'ah':
-                        send_data_ah.append(packet)
+                        #send_data_ah.append(packet)
+                        data['ah'].append(packet)
                     case 'al':
-                        send_data_al.append(packet)
+                        #send_data_al.append(packet)
+                        data['al'].append(packet)
                     case 'ro':
-                        send_data_ro.append(packet)
+                        #send_data_ro.append(packet)
+                        data['ro'].append(packet)
                     case 'sc':
                         print(f"Received sc! Payload: {packet['payload']}")
                     case _:
                         print(f"Unknown sensor id: {packet['id']}")
             
             # Update state and limit to last 10 packets
-            state['ba'].extend(send_data_ba)
+            state['ba'].extend(data['ba'])
             state['ba'] = state['ba'][-10:]
-            state['ah'].extend(send_data_ah)
+            state['ah'].extend(data['ah'])
             state['ah'] = state['ah'][-10:]
-            state['al'].extend(send_data_al)
+            state['al'].extend(data['al'])
             state['al'] = state['al'][-10:]
-            state['ro'].extend(send_data_ro)
+            state['ro'].extend(data['ro'])
             state['ro'] = state['ro'][-10:]
 
             with api.test_request_context('/'):
-                num_ba = len(send_data_ba)
-                num_ah = len(send_data_ah)
-                num_al = len(send_data_al)
-                num_ro = len(send_data_ro)
-                if num_ba > 0:
-                    print(f'Sending {num_ba} ba packets...')
-                    socketio.emit(f'send_data_ba', send_data_ba)
-                if num_ah > 0:
-                    print(f'Sending {num_ah} ah packets...')
-                    socketio.emit(f'send_data_ah', send_data_ah)
-                if num_al > 0:
-                    print(f'Sending {num_al} al packets...')
-                    socketio.emit(f'send_data_al', send_data_al)
-                if num_ro > 0:
-                    print(f'Sending {num_ro} ro packets...')
-                    socketio.emit(f'send_data_ro', send_data_ro)
+                for id in data:
+                    num_packets = len(data[id])
+                    if num_packets > 0:
+                        print(f'Sending {num_packets} {id} packets...')
+                        socketio.emit(f'send_data_{id}', data[id])
+                
+                try:
+                    packet_loss = packets_lost / packets_read
+                except ZeroDivisionError:
+                    packet_loss = 0
+
+                print(f'Packet loss: {packet_loss}')
+                socketio.emit(f'send_data_ploss', packet_loss)
 
     finally:
         event.clear()
