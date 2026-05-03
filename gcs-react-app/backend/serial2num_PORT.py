@@ -179,15 +179,7 @@ class Serial2Num():
                                             'Z': int.from_bytes(packet[24:28])}
                     
                 case 'ba':
-                    #bindata = int.from_bytes(packet[11:28])
-                    bindata = int(packet[11:28].decode('ascii'))
-                    exp = bindata % 10
-                    bindata -= exp
-                    fp = bindata % 100
-                    bindata -= fp
-                    digit = bindata
-
-                    packetdict['payload'] = (digit + (fp/10)) * (10**exp)
+                    packetdict['payload'] = int(packet[11:28].decode('ascii'))
 
                 case 'al' | 'ah':
                     """
