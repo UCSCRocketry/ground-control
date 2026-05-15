@@ -1,0 +1,31 @@
+.full-screen-graph-page {
+  width: 100vw;
+  min-height: 100vh;
+  background: white;
+  padding: 2rem;
+}
+
+.full-screen-back-button {
+  margin-bottom: 1rem;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background: black;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.full-screen-back-button:hover {
+  transform: scale(1.05);
+}
+
+.full-screen-graph-wrapper {
+  width: 100%;
+  height: 80vh;
+}
+
+.full-screen-graph-wrapper .custom-line-graph {
+  width: 100%;
+  height: 100%;
+}

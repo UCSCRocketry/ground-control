@@ -22,31 +22,18 @@ const plugin = {
 ChartJS.register(plugin);
 
 
-const CustomLineGraph = ({ title, data, label = 'Home' }) => {
+const CustomLineGraph = ({ title, data, label = 'Home', clickable = true }) => {
   const navigate = useNavigate();
-  // const [backgroundPattern, setBackgroundPattern] = useState('lightblue');
   
-  // CHANGE THIS TO THE CORRECT PAGE FOR THE FULL SCREEN GRAPH PAGE
   const handleClick = () => {
-    navigate(`/launch?id=${1}`); // TODO: replace this with route to full screen graph page
-  };
-
-  // // Create pattern from image
-  // useEffect(() => {
-  //   const img = new Image();
-  //   img.onload = () => {
-  //     const canvas = document.createElement('canvas');
-  //     const ctx = canvas.getContext('2d');
-  //     canvas.width = img.width;
-  //     canvas.height = img.height;
-  //     ctx.drawImage(img, 0, 0);
-      
-  //     // Create pattern
-  //     const pattern = ctx.createPattern(img, 'repeat');
-  //     setBackgroundPattern(pattern);
-  //   };
-  //   img.src = starClusterImage;
-  // }, []);
+  navigate('/fullscreen-graph', {
+    state: {
+      title,
+      data: resolvedData,
+      label,
+    },
+  });
+};
 
   const resolvedData = Array.isArray(data) ? data : [];
   const hasData = resolvedData.length > 0;
@@ -105,10 +92,14 @@ const CustomLineGraph = ({ title, data, label = 'Home' }) => {
   };
 
   return (
-    <div className="custom-line-graph" onClick={handleClick}>
-      <Line options={options} data={canvasData} />
-    </div>
-  );
+  <div
+    className="custom-line-graph"
+    onClick={clickable ? handleClick : undefined}
+    style={{ cursor: clickable ? 'pointer' : 'default' }}
+  >
+    <Line options={options} data={canvasData} />
+  </div>
+);
 };
 
 export default CustomLineGraph;
